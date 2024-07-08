@@ -1,0 +1,67 @@
+{
+    "version": 6,
+    "configurePresets": [
+        {
+            "name": "Win-X86_64",
+            "displayName": "Windows X86_64",
+            "description": "Windows x64 with Ninja",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/bin/${presetName}",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/bin/${presetName}"
+            }
+        },
+        {
+            "name": "Win-ARM64",
+            "displayName": "Windows ARM64",
+            "description": "Windows ARM64 with Ninja",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/bin/${presetName}",
+            "cacheVariables": {
+            "CMAKE_BUILD_TYPE": "Debug",
+            "CMAKE_INSTALL_PREFIX": "${sourceDir}/bin/${presetName}"
+            }
+        },
+        {
+            "name": "Unix",
+            "displayName": "Linux Debug",
+            "description": "Linux Universal with Makefile",
+            "generator": "Unix Makefiles",
+            "binaryDir": "${sourceDir}/bin/${presetName}",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/bin/${presetName}"
+            }
+        },
+        {
+            "name": "Darwin",
+            "displayName": "MacOS Debug",
+            "description": "MacOS with Makefile",
+            "generator": "Unix Makefiles",
+            "binaryDir": "${sourceDir}/bin/${presetName}",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/bin/${presetName}"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "WinX86_64",
+            "configurePreset": "Win-X86_64"
+        },
+        {
+            "name": "WinARM64",
+            "configurePreset": "Win-ARM64"
+        },
+        {
+            "name": "Darwin",
+            "configurePreset": "Darwin"
+        },
+        {
+            "name": "Unix",
+            "configurePreset": "Unix"
+        }
+    ]
+}

@@ -1,0 +1,27 @@
+#ifndef COMPILER_TOKEN
+#define COMPILER_TOKEN
+
+#define MAX_STRING_SIZE 256
+
+enum TOKENS {
+    // EOF
+    TOK_EOF = 256,
+    // Identifier
+    TOK_IDENTIFIER,
+
+    // types
+    TOK_SI8, TOK_SI16, TOK_SI32, TOK_SI64, TOK_SI128, TOK_UI8, TOK_UI16, TOK_UI32, TOK_UI64, TOK_UI128, TOK_FLOAT, TOK_DFLOAT,
+    TOK_TYPE, TOK_VOID, TOK_ASM,
+    // values
+    TOK_NULL, TOK_INT, TOK_DECIMAL, TOK_CHAR, TOK_STRING, TOK_FUNCTION,
+    // selection and loops
+    TOK_WHILE, TOK_IF, TOK_ELSEIF, TOK_ELSE, TOK_FOR,
+    // logic gates
+    TOK_AND, TOK_OR, TOK_XOR, TOK_NOT,
+    // compare
+    TOK_EQUAL, TOK_NOTEQUAL, TOK_GREATER, TOK_LESS, TOK_GREATEREQUAL, TOK_LESSEQUAL,
+    // others
+    TOK_IMPORT, TOK_EXPORT
+};
+
+#endif

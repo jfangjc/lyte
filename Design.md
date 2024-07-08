@@ -1,0 +1,7 @@
+- arch/
+- compiler/
+    - lexer.c
+        - return the next word with the corresponding token type.
+    - parser.c
+        - Generate Abstract Syntax Tree.
+    - token.h

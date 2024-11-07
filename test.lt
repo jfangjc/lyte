@@ -1,0 +1,8 @@
+# This is comment
+# Every variable is an address
+
+# main store the address pointed to the function in the memory
+def null main = () -> {
+    si8 a = (si8 x) -> { return x + x } 
+    return null;
+};

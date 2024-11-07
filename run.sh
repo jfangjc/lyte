@@ -1,24 +1,26 @@
-if [ ! -d "./bin/Debug_Unix" ]; then
+if [ ! -d "./bin" ]; then
     mkdir ./bin
-    mkdir ./bin/Debug_Unix
-    cmake --preset Debug_Unix
-elif [ ! -d "./bin/Debug_Darwin" ]; then
-    mkdir ./bin
-    mkdir ./bin/Debug_Darwin
-    cmake --preset Debug_Darwin
-elif [ ! -d "./bin/Debug_Windows" ]; then
-    mkdir ./bin
-    mkdir ./bin/Debug_Windows
-    cmake --preset Debug_Windows
 fi
 
-if [[ "$OSTYPE" == "linux-gnu" ]]; then
+if [[ "$OSTYPE" == "linux" ]]; then
+    if [ ! -d "./bin/linux-arm64" ]; then
+        mkdir ./bin/linux-arm64
+        cmake --preset linux-arm64
+    fi
     echo Compiling for linux
-    cmake --build --preset Unix && ./bin/Debug_Unix/Lyte
+    cmake --build --preset linux-arm64 && ./bin/linux-arm64/lyte
 elif [[ "$OSTYPE" == "darwin" ]]; then
+    if [ ! -d "./bin/darwin-arm64" ]; then
+        mkdir ./bin/darwin-arm64
+        cmake --preset darwin-arm64
+    fi
     echo Compiling for mac
-    cmake --build --preset Darwin && ./bin/Debug_Darwin/Lyte
+    cmake --build --preset darwin-arm64 && ./bin/darwin-arm64/lyte
 else
+    if [ ! -d "./bin/win-arm64" ]; then
+        mkdir ./bin/win-arm64
+        cmake --preset win-arm64
+    fi
     echo Compiling for windwos
-    cmake --build --preset Windows && ./bin/Debug_Win/Lyte
+    cmake --build --preset win-arm64 && ./bin/win-arm64/lyte
 fi

@@ -11,11 +11,11 @@ struct token {
     char* value;
     int type;
     int line_num;
-    int char_num;
-    //struct token* Next;
+    int col_num;
+    struct token* next;
 };
 
-char* read_file(char* Path);
-struct token next(char* src, int* index);
+char* read_file(char* path);
+struct token *next(char* src);
 
 #endif

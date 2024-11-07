@@ -3,3 +3,6 @@ bin/*
 */**/.cache
 .vs
 .vscode
+.idea
+cmake-build-debug/
+

@@ -2,9 +2,9 @@
     "version": 6,
     "configurePresets": [
         {
-            "name": "Win-X86_64",
-            "displayName": "Windows X86_64",
-            "description": "Windows x64 with Ninja",
+            "name": "win-amd64",
+            "displayName": "Windows AMD64",
+            "description": "Windows AMD64 with Ninja",
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/bin/${presetName}",
             "cacheVariables": {
@@ -13,7 +13,7 @@
             }
         },
         {
-            "name": "Win-ARM64",
+            "name": "win-arm64",
             "displayName": "Windows ARM64",
             "description": "Windows ARM64 with Ninja",
             "generator": "Ninja",
@@ -24,9 +24,9 @@
             }
         },
         {
-            "name": "Unix",
-            "displayName": "Linux Debug",
-            "description": "Linux Universal with Makefile",
+            "name": "linux-amd64",
+            "displayName": "Linux AMD64",
+            "description": "Linux AMD64 with Makefile",
             "generator": "Unix Makefiles",
             "binaryDir": "${sourceDir}/bin/${presetName}",
             "cacheVariables": {
@@ -35,9 +35,20 @@
             }
         },
         {
-            "name": "Darwin",
-            "displayName": "MacOS Debug",
-            "description": "MacOS with Makefile",
+            "name": "linux-arm64",
+            "displayName": "Linux ARM64",
+            "description": "Linux ARM64 with Makefile",
+            "generator": "Unix Makefiles",
+            "binaryDir": "${sourceDir}/bin/${presetName}",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/bin/${presetName}"
+            }
+        },
+        {
+            "name": "darwin-arm64",
+            "displayName": "MacOS ARM64",
+            "description": "MacOS ARM64 with Makefile",
             "generator": "Unix Makefiles",
             "binaryDir": "${sourceDir}/bin/${presetName}",
             "cacheVariables": {
@@ -48,20 +59,24 @@
     ],
     "buildPresets": [
         {
-            "name": "WinX86_64",
-            "configurePreset": "Win-X86_64"
+            "name": "win-amd64",
+            "configurePreset": "win-amd64"
         },
         {
-            "name": "WinARM64",
-            "configurePreset": "Win-ARM64"
+            "name": "win-arm64",
+            "configurePreset": "win-arm64"
         },
         {
-            "name": "Darwin",
-            "configurePreset": "Darwin"
+            "name": "linux-amd64",
+            "configurePreset": "linux-amd64"
         },
         {
-            "name": "Unix",
-            "configurePreset": "Unix"
+            "name": "linux-arm64",
+            "configurePreset": "linux-arm64"
+        },
+        {
+            "name": "darwin-arm64",
+            "configurePreset": "darwin-arm64"
         }
     ]
 }

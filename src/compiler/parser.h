@@ -1,10 +1,11 @@
 #ifndef COMPILER_PARSER
 #define COMPILER_PARSER
 
-#include "lexer.h"
+#include "scanner.h"
 struct AST {
     struct token token;
-    struct AST *next;
+    struct AST *left;
+    struct AST *right;
 };
 
 #endif

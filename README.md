@@ -12,3 +12,8 @@
 - As less keywords as possible
 - Allow inline assembly to be written inside a function with type asm
 - Don't allow non-terminating function
+
+# Basic architecture
+Scanner -> Linked list of tokens -> Parser -> AST -> Evalutaor -> CASM (Common assembly) -> Translator -> Machine specific assembly
+
+WYWIWYG (What you write is what you get)

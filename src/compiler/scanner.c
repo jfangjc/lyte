@@ -7,64 +7,21 @@
 
 #include "error.h"
 
-// define macro
-#define MAX_STRING_SIZE 128
-
-enum letter_type {
-	empty = 0, string, number, symbol, comment, other
-};
+static void produce_token(struct token* token, char* start_pos, int type);
+static int token_cmp(struct token* token, char* target, int target_length);
+static int generate_type(struct token* token);
 
 static int line_num = 1;
-static int char_num = 0;
+static int col_num = 1;
 
-static int ischar(char src) {
-    if ((src >= 'A' && src <= 'Z') || (src >= 'a' && src <= 'z') || src == '_') {
-        return 1;
-    }
-    return 0;
-}
-
-static int isnum(char src) {
-    if ((src >= '0' && src <= '9') || src == '.') {
-        return 1;
-    }
-    return 0;
-}
-
-static int issymbol(char src) {
-	// Special symbols need to be considered: &&, ||, ^^, +=, -=, *=, /=, <<, >>
-	if ((src != '_' && src != '#') && ((src > ' ' && src < '0') || (src > '9' && src < 'A') || (src > 'Z' && src < 'a') || src > 'z')) {
-		return 1;
-	}
-	return 0;
-}
-
-static int iscomment(char src) {
-    if (src == '#') {
-        return 1;
-    }
-    return 0;
-}
-
-static int iswhitespace(char src) {
-    if (src == ' ' || src == '\r' || src == '\t') {
-        line_num += 1;
-        return 1;
-    }
-    if (src == '\n') {
-        line_num += 1;
-        char_num = 0;
-        return 1;
-    }
-    return 0;
-}
+static char* curr;
 
 char* read_file(char* path) {
     FILE* File = fopen(path, "r");
 
     if (File) {
         fseek(File, 0, SEEK_END);
-        unsigned long long Size = ftell(File);
+        size_t Size = ftell(File);
         fseek(File, 0, SEEK_SET);
 
         if (Size) {
@@ -72,103 +29,127 @@ char* read_file(char* path) {
             fread(Content, Size, 1, File);
             fclose(File);
             Content[Size] = '\0';
+            curr = Content;
             return Content;
         }
-        error(1);
+        error("File does not exist.");
         return NULL;
     }
-    error(2);
+    error("File does not exist.");
     return NULL;
 }
 
-static int word_type(char* src) {
-    if (!strcmp(src, "si8")) { return TOK_SI8; }
-    else if (!strcmp(src, "si16")) { return TOK_SI16; }
-    else if (!strcmp(src, "si32")) { return TOK_SI32; }
-    else if (!strcmp(src, "si64")) { return TOK_SI64; }
-    else if (!strcmp(src, "si128")) { return TOK_SI128; }
-    else if (!strcmp(src, "ui8")) { return TOK_UI8; }
-    else if (!strcmp(src, "ui16")) { return TOK_UI16; }
-    else if (!strcmp(src, "ui32")) { return TOK_UI32; }
-    else if (!strcmp(src, "ui64")) { return TOK_UI64; }
-    else if (!strcmp(src, "ui128")) { return TOK_UI128; }
-    // implement more complex float type later
-    else if (!strcmp(src, "float")) { return TOK_FLOAT; }
-    else if (!strcmp(src, "double")) { return TOK_DFLOAT; }
-    else if (!strcmp(src, "type")) { return TOK_TYPE; }
-    else if (!strcmp(src, "fn")) { return TOK_FUNCTION; }
+struct token* next() {
+    struct token* token = malloc(sizeof(struct token));
+    token->length = 0;
 
-    else if (!strcmp(src, "import")) { return TOK_IMPORT; }
-    else if (!strcmp(src, "export")) { return TOK_EXPORT; }
-	return TOK_IDENTIFIER;
-}
-
-struct token *next(char *src) {
-    int type = -1;
-    int count = 0;
-    char *temp = malloc(MAX_STRING_SIZE);
-    char curr = *src;
-    struct token *head = malloc(sizeof(struct token));
-    head -> value = NULL;
-    struct token *curr_token = head;
-
-	while (curr != '\0') {
-        if ((type == 1 && !ischar(curr) && !isnum(curr)) || (type == 2 && !isnum(curr))) {
-            temp[count] = '\0';
-            curr_token -> value = malloc((count + 1) * sizeof(char));
-            memcpy(curr_token->value, temp, count + 1);
-            curr_token -> type = word_type(curr_token -> value);
-            curr_token -> next = malloc(sizeof(struct token));
-            if (type == 1) {
-                curr_token->type = word_type(temp);
+	while (*curr != '\0') {
+        if ((*curr >= 'A' && *curr <= 'Z') || (*curr >= 'a' && *curr <= 'z') || *curr == '_') {
+            produce_token(token, curr, TOK_ID);
+            while ((*curr >= 'A' && *curr <= 'Z') || (*curr >= 'a' && *curr <= 'z') || *curr == '_'
+            || (*curr >= '0' && *curr <= '9')) {
+                curr++;
+                token->length += 1;
             }
-            curr_token = curr_token -> next;
-            curr_token -> value = NULL;
-            count = 0;
+            token->type = generate_type(token);
+            return token;
         }
-
-        if (ischar(curr)) {
-            type = 1;
+        else if (*curr >= '0' && *curr <= '9') {
+            produce_token(token, curr, TOK_NUM);
+            while (*curr >= '0' && *curr <= '9') {
+                curr++;
+                token->length += 1;
+            }
+            return token;
         }
-        else if (isnum(curr)) {
-            type = 2;
+        else if (*curr == '=') {
+            produce_token(token, curr, *curr);
+            curr++;
+            if (*curr == '=') {
+                curr++;
+                token->length += 1;
+                token->type = TOK_EQUAL;
+            }
+            return token;
         }
-        else if (issymbol(curr)) {
-            type = -1;
-            temp[0] = curr;
-            temp[1] = '\0';
-            curr_token -> value = malloc(2 * sizeof(char));
-            memcpy(curr_token->value, temp, 2);
-            curr_token -> type = (int)curr;
-            curr_token -> next = malloc(sizeof(struct token));
-            curr_token = curr_token -> next;
-            curr_token -> value = NULL;
-            count = 0;
-            curr = *src++;
+        else if (*curr == '>') {
+            produce_token(token, curr, *curr);
+            curr++;
+            if (*curr == '=') {
+                curr++;
+                token->length += 1;
+                token->type = TOK_GREATEREQUAL;
+            }
+            return token;
+        }
+        else if (*curr == '<') {
+            produce_token(token, curr, *curr);
+            curr++;
+            if (*curr == '=') {
+                curr++;
+                token->length += 1;
+                token->type = TOK_LESSEQUAL;
+            }
+            return token;
+        }
+        else if (*curr == '!') {
+            produce_token(token, curr, *curr);
+            curr++;
+            if (*curr == '=') {
+                curr++;
+                token->length += 1;
+                token->type = TOK_NOTEQUAL;
+            }
+            return token;
+        }
+        else if (*curr == '#') {
+            while (*(curr++) != '\n') { }
             continue;
         }
-        else if (iscomment(curr)) {
-            type = -1;
-            while (*src++ != '\n') {
-            }
-            curr = *src++;
-            count = 0;
+        else if (*curr == '\n') {
+            line_num += 1;
+            curr++;
             continue;
         }
-        else if (iswhitespace(curr)) {
-            type = -1;
-            curr = *src++;
-            count = 0;
+        else if (*curr == ' ') {
+            curr++;
             continue;
         }
         else {
-            error(3);
+            produce_token(token, curr, *curr);
+            curr++;
+            return token;
         }
-
-        temp[count] = curr;
-        count += 1;
-        char_num += 1;
-        curr = *src++;
 	}
-    return head;
+    return NULL;
+}
+
+static void produce_token(struct token* token, char* start_pos, int type) {
+    token -> start_pos = start_pos;
+    token -> type = type;
+    token -> line_num = line_num;
+}
+
+static int token_cmp(struct token* token, char* target, int target_length) {
+    if (token->length != target_length) {
+        return 0;
+    }
+    return (memcmp(token->start_pos, target, token->length) == 0);
+}
+
+static int generate_type(struct token* token) {
+    if (token_cmp(token, "si8", 3)) { return TOK_SI8; }
+    else if (token_cmp(token, "si16", 4)) { return TOK_SI16; }
+    else if (token_cmp(token, "si32", 4)) { return TOK_SI32; }
+    else if (token_cmp(token, "si64", 4)) { return TOK_SI64; }
+    else if (token_cmp(token, "ui8", 3)) { return TOK_UI8; }
+    else if (token_cmp(token, "ui16", 4)) { return TOK_UI16; }
+    else if (token_cmp(token, "ui32", 4)) { return TOK_UI32; }
+    else if (token_cmp(token, "ui64", 4)) { return TOK_UI64; }
+    else if (token_cmp(token, "fn", 2)) { return TOK_FUNCTION; }
+    else if (token_cmp(token, "def", 3)) { return TOK_CONST; }
+    else if (token_cmp(token, "var", 3)) { return TOK_VAR; }
+    else if (token_cmp(token, "return", 6)) { return TOK_RETURN; }
+
+	return TOK_IDENTIFIER;
 }

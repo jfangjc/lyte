@@ -1,10 +1,19 @@
 #include "parser.h"
 
 #include <stdlib.h>
+
 #include "scanner.h"
+#include "common.h"
 
-struct AST *parse_statement(struct AST *statement);
+void create_ast() {
+}
 
-int parser(struct token token) {
-    return 0;
+struct definition* parser(struct token* tokens) {
+    if (tokens == NULL) {
+        return NULL;
+    }
+    if (tokens -> type == TOK_FUNCTION) {
+        return create_definition(tokens);
+    }
+    return parser(tokens -> next);
 }

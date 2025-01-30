@@ -1,7 +1,9 @@
 #include "error.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 
-void error(int error_code){
-    fprintf(stderr, "%i, \n", error_code);
+void error(char *error_msg) {
+    fprintf(stderr, "%s\n", error_msg);
+    exit(0);
 }

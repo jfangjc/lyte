@@ -7,6 +7,10 @@
             "description": "Windows AMD64 with Ninja",
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/bin/${presetName}",
+            "architecture": { 
+                "value": "arm64ec", 
+                "strategy": "external"
+            },
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_INSTALL_PREFIX": "${sourceDir}/bin/${presetName}"
@@ -19,8 +23,8 @@
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/bin/${presetName}",
             "cacheVariables": {
-            "CMAKE_BUILD_TYPE": "Debug",
-            "CMAKE_INSTALL_PREFIX": "${sourceDir}/bin/${presetName}"
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/bin/${presetName}"
             }
         },
         {

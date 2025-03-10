@@ -7,15 +7,7 @@ fn main(): si8 {
     # with the initial value of 0
     var a: si8 = 0;
 
-    var b[10]: si8 = {0};
-
-    for i in b {
-        log(i);
-    }
-
-    for i in 1 to 11 {
-        log(i);
-    }
+    var b[10]: si8 = { 0 };
 
     log("Hello world!");
 

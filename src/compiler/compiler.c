@@ -2,10 +2,10 @@
 
 #include "common.h"
 
-#include "scanner.h"
 #include "parser.h"
+#include "scanner.h"
 
-/*
+
 static char* type_word(int type) {
     if (type == TOK_SI8) { return "si8"; }
     else if (type == TOK_SI16) { return "si16"; }
@@ -32,9 +32,23 @@ static char* type_word(int type) {
     sprintf(symbol, "%c", type);
 	return symbol;
 }
-*/
+
 int main(int argc, char** argv){
     read_file("./test.lt");
+    /*struct token* token = next_token();
+    while (token != NULL) {
+        printf("<");
+        for (int i = 0; i < token->length; i++) {
+            printf("%c", token->start_pos[i]);
+        }
+        printf("> ");
+        token = next_token();
+    }*/
+    /*struct token* token = next_token();
+   while (token != NULL) {
+        printf("%s ", type_word(token->type));
+        token = next_token();
+    }*/
     parse_program();
     printf("Compilation finished\n");
     return 0;

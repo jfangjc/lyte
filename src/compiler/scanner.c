@@ -16,6 +16,13 @@ static int col_num = 1;
 
 static char* curr;
 
+struct token* token;
+
+static void advance() {
+    curr++;
+    token->length += 1;
+}
+
 char* read_file(char* path) {
     FILE* File = fopen(path, "r");
 
@@ -40,7 +47,7 @@ char* read_file(char* path) {
 }
 
 struct token* next_token() {
-    struct token* token = malloc(sizeof(struct token));
+    token = malloc(sizeof(struct token));
     token->length = 0;
 
 	while (*curr != '\0') {
@@ -64,7 +71,7 @@ struct token* next_token() {
         }
         else if (*curr == '=') {
             produce_token(token, curr, *curr);
-            curr++;
+            advance();
             if (*curr == '=') {
                 curr++;
                 token->length += 1;
@@ -74,7 +81,7 @@ struct token* next_token() {
         }
         else if (*curr == '>') {
             produce_token(token, curr, *curr);
-            curr++;
+            advance();
             if (*curr == '=') {
                 curr++;
                 token->length += 1;
@@ -84,7 +91,7 @@ struct token* next_token() {
         }
         else if (*curr == '<') {
             produce_token(token, curr, *curr);
-            curr++;
+            advance();
             if (*curr == '=') {
                 curr++;
                 token->length += 1;
@@ -94,7 +101,7 @@ struct token* next_token() {
         }
         else if (*curr == '!') {
             produce_token(token, curr, *curr);
-            curr++;
+            advance();
             if (*curr == '=') {
                 curr++;
                 token->length += 1;
@@ -135,6 +142,7 @@ struct token* next_token() {
         }
         else {
             produce_token(token, curr, *curr);
+            token->length += 1;
             curr++;
             return token;
         }

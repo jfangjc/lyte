@@ -44,6 +44,7 @@ void expect(int type) {
         next();
         return;
     }
+    printf("\n ERROR: %i \n", type);
     error("wrong type");
     return;
 }
@@ -55,8 +56,9 @@ int match(int type) {
 struct program_ast* parse_program() {
     struct program_ast* program = NULL;
     struct fn_decl* fn;
+    next();
 
-    while (!match(EOF)) {
+    while (curr_token != NULL) {
         parse_fn_decl();
         next();
     }
@@ -70,17 +72,26 @@ struct fn_decl* parse_fn_decl() {
     }
 
     printf("fn ");
+    expect(TOK_FN);
     parse_id();
+    parse_param_list();
     expect(':');
     parse_type();
-    parse_param_list();
     parse_compound_stmt();
     return NULL;
 }
 
 void parse_var_decl() {
     printf("var ");
+    expect(TOK_VAR);
     parse_id();
+    if (match('[')) {
+        next();
+        if (match(TOK_NUM)) {
+            parse_num();
+        }
+        expect(']');
+    }
     expect(':');
     parse_type();
     parse_init_decl();
@@ -89,14 +100,8 @@ void parse_var_decl() {
 
 void parse_init_decl() {
     printf("init_decl ");
-    if (match('[')) {
-        next();
-        if (match(TOK_NUM)) {
-            parse_num();
-        }
-        expect(']');
-    }
     if (match('=')) {
+        printf("assign ");
         next();
         if (match('{')) {
             next();
@@ -106,6 +111,9 @@ void parse_init_decl() {
                 parse_expr();
             }
             expect('}');
+        }
+        else {
+            parse_expr();
         }
     }
     else {
@@ -118,7 +126,7 @@ void parse_type() {
     if (match(TOK_SI8)) {
         
     }
-    next();
+    expect(TOK_SI8);
 }
 
 void parse_id() {
@@ -355,6 +363,9 @@ void parse_primary_expr() {
         case TOK_NUM:
             parse_num();
             break;
+        case TOK_STRING:
+            expect(TOK_STRING);
+            break;
         default:
             break;
     }
@@ -380,7 +391,7 @@ void parse_param_list() {
 void parse_arg_list() {
     printf("arg_list ");
     expect('(');
-    if (curr_token->type != ')') {
+    if (!match(')')) {
         parse_expr();
         while (curr_token->type == ',') {
             next();

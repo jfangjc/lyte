@@ -1,8 +1,5 @@
 # This is comment
 
-# This is a global variable
-def b 10;
-
 # This is a function, with the return type of 8 bits signed integer
 fn main(): si8 {
     
@@ -10,6 +7,18 @@ fn main(): si8 {
     # with the initial value of 0
     var a: si8 = 0;
 
+    var b[10]: si8 = {0};
+
+    for i in b {
+        log(i);
+    }
+
+    for i in 1 to 11 {
+        log(i);
+    }
+
+    log("Hello world!");
+
     # Returns 10
-    return a + b;
+    return a;
 };

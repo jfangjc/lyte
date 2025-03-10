@@ -39,7 +39,7 @@ char* read_file(char* path) {
     return NULL;
 }
 
-struct token* next() {
+struct token* next_token() {
     struct token* token = malloc(sizeof(struct token));
     token->length = 0;
 
@@ -68,7 +68,7 @@ struct token* next() {
             if (*curr == '=') {
                 curr++;
                 token->length += 1;
-                token->type = TOK_EQUAL;
+                token->type = TOK_EQEQ;
             }
             return token;
         }
@@ -78,7 +78,7 @@ struct token* next() {
             if (*curr == '=') {
                 curr++;
                 token->length += 1;
-                token->type = TOK_GREATEREQUAL;
+                token->type = TOK_GTEQ;
             }
             return token;
         }
@@ -88,7 +88,7 @@ struct token* next() {
             if (*curr == '=') {
                 curr++;
                 token->length += 1;
-                token->type = TOK_LESSEQUAL;
+                token->type = TOK_LTEQ;
             }
             return token;
         }
@@ -98,8 +98,26 @@ struct token* next() {
             if (*curr == '=') {
                 curr++;
                 token->length += 1;
-                token->type = TOK_NOTEQUAL;
+                token->type = TOK_NOTEQ;
             }
+            return token;
+        }
+        else if (*curr == '\"') {
+            produce_token(token, curr++, TOK_STRING);
+            token->length += 1;
+            while (*(curr++) != '\"') {
+                token->length += 1;
+            }
+            token->length += 1;
+            return token;
+        }
+        else if (*curr == '\'') {
+            produce_token(token, curr++, TOK_CHAR);
+            token->length += 1;
+            while (*(curr++) != '\'') {
+                token->length += 1;
+            }
+            token->length += 1;
             return token;
         }
         else if (*curr == '#') {
@@ -125,9 +143,9 @@ struct token* next() {
 }
 
 static void produce_token(struct token* token, char* start_pos, int type) {
-    token -> start_pos = start_pos;
-    token -> type = type;
-    token -> line_num = line_num;
+    token->start_pos = start_pos;
+    token->type = type;
+    token->line_num = line_num;
 }
 
 static int token_cmp(struct token* token, char* target, int target_length) {
@@ -142,14 +160,29 @@ static int generate_type(struct token* token) {
     else if (token_cmp(token, "si16", 4)) { return TOK_SI16; }
     else if (token_cmp(token, "si32", 4)) { return TOK_SI32; }
     else if (token_cmp(token, "si64", 4)) { return TOK_SI64; }
+
     else if (token_cmp(token, "ui8", 3)) { return TOK_UI8; }
     else if (token_cmp(token, "ui16", 4)) { return TOK_UI16; }
     else if (token_cmp(token, "ui32", 4)) { return TOK_UI32; }
     else if (token_cmp(token, "ui64", 4)) { return TOK_UI64; }
-    else if (token_cmp(token, "fn", 2)) { return TOK_FUNCTION; }
+    else if (token_cmp(token, "null", 4)) { return TOK_NULL; }
+
+    else if (token_cmp(token, "addr", 4)) { return TOK_ADDR; }
+    else if (token_cmp(token, "fn", 2)) { return TOK_FN; }
     else if (token_cmp(token, "def", 3)) { return TOK_CONST; }
     else if (token_cmp(token, "var", 3)) { return TOK_VAR; }
     else if (token_cmp(token, "return", 6)) { return TOK_RETURN; }
 
-	return TOK_IDENTIFIER;
+    else if (token_cmp(token, "if", 2)) { return TOK_IF; }
+    else if (token_cmp(token, "else", 4)) { return TOK_ELSE; }
+
+    else if (token_cmp(token, "loop", 4)) { return TOK_LOOP; }
+    else if (token_cmp(token, "while", 5)) { return TOK_WHILE; }
+    else if (token_cmp(token, "for", 3)) { return TOK_FOR; }
+    else if (token_cmp(token, "in", 2)) { return TOK_IN; }
+    else if (token_cmp(token, "to", 2)) { return TOK_TO; }
+    else if (token_cmp(token, "break", 5)) { return TOK_BREAK; }
+    else if (token_cmp(token, "continue", 8)) { return TOK_CONTINUE; }
+
+	return TOK_ID;
 }

@@ -6,10 +6,9 @@ struct token {
     int length;
     int type;
     int line_num;
-    struct token* next;
 };
 
 char* read_file(char* path);
-struct token *next();
+struct token *next_token();
 
 #endif

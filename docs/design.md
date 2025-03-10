@@ -22,3 +22,6 @@ Read in the whole file
     - Function name
     - Function arguments
     - Function contents
+
+for (int n : ns) {}
+loo (int i : 10) {}

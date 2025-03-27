@@ -1,39 +1,41 @@
 #include "parser.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "scanner.h"
 #include "common.h"
+#include "error.h"
 
 struct token* curr_token;
 
 struct fn_decl* parse_fn_decl();
-void parse_var_decl();
-void parse_init_decl();
-void parse_type();
-void parse_id();
-void parse_compound_stmt();
-void parse_stmt();
-void parse_if_stmt();
-void parse_for_stmt();
-void parse_while_stmt();
-void parse_break_stmt();
-void parse_continue_stmt();
-void parse_return_stmt();
-void parse_expr_stmt();
-void parse_expr();
-void parse_assign_expr();
-void parse_cond_or_expr();
-void parse_cond_and_expr();
-void parse_equality_expr();
-void parse_rel_expr();
-void parse_additive_expr();
-void parse_multiplicative_expr();
-void parse_unary_expr() ;
-void parse_primary_expr();
-void parse_param_list();
-void parse_arg_list();
-void parse_num();
+struct var_decl* parse_var_decl();
+struct expr* parse_init_decl();
+int parse_type();
+struct token* parse_id();
+struct stmt* parse_compound_stmt();
+struct stmt* parse_stmt();
+struct stmt* parse_if_stmt();
+struct stmt* parse_for_stmt();
+struct stmt* parse_while_stmt();
+struct stmt* parse_break_stmt();
+struct stmt* parse_continue_stmt();
+struct stmt* parse_return_stmt();
+struct stmt* parse_expr_stmt();
+struct expr* parse_expr();
+struct expr* parse_assign_expr();
+struct expr* parse_cond_or_expr();
+struct expr* parse_cond_and_expr();
+struct expr* parse_equality_expr();
+struct expr* parse_rel_expr();
+struct expr* parse_additive_expr();
+struct expr* parse_multiplicative_expr();
+struct expr* parse_unary_expr() ;
+struct expr* parse_primary_expr();
+struct param* parse_param_list();
+struct arg* parse_arg_list();
+struct token* parse_num();
 
 void next() {
     curr_token = next_token();
@@ -44,7 +46,7 @@ void expect(int type) {
         next();
         return;
     }
-    printf("\n ERROR: %i \n", type);
+    printf("\n ERROR: %i : %c \n", type, curr_token->start_pos[0]);
     error("wrong type");
     return;
 }
@@ -54,14 +56,17 @@ int match(int type) {
 }
 
 struct program_ast* parse_program() {
-    struct program_ast* program = NULL;
-    struct fn_decl* fn;
+    struct program_ast* program = malloc(sizeof(struct program_ast));
+    struct fn_decl** fn = &(program->fn_decls);
     next();
 
     while (curr_token != NULL) {
-        parse_fn_decl();
+        *fn = parse_fn_decl();
+        printf("<%i> ", (*fn)->fn_type);
         next();
+        fn = &((*fn)->next);
     }
+    *fn = NULL;
 
     return program;
 }
@@ -70,21 +75,34 @@ struct fn_decl* parse_fn_decl() {
     if (curr_token->type != TOK_FN) {
         return NULL;
     }
+    struct fn_decl* fn = malloc(sizeof(struct fn_decl));
 
     printf("fn ");
     expect(TOK_FN);
-    parse_id();
-    parse_param_list();
+
+    fn->fn_name = parse_id();
+    fn->fn_params = parse_param_list();
+
     expect(':');
-    parse_type();
-    parse_compound_stmt();
-    return NULL;
+
+    fn->fn_type = parse_type();
+    fn->fn_body = parse_compound_stmt();
+
+    return fn;
 }
 
-void parse_var_decl() {
+struct var_decl* parse_var_decl() {
+    struct var_decl* var = malloc(sizeof(struct var_decl));
     printf("var ");
+
+    if (!match(TOK_VAR)) {
+        return NULL;
+    }
+
     expect(TOK_VAR);
-    parse_id();
+
+    var->var_name = parse_id();
+
     if (match('[')) {
         next();
         if (match(TOK_NUM)) {
@@ -92,106 +110,141 @@ void parse_var_decl() {
         }
         expect(']');
     }
+
     expect(':');
-    parse_type();
-    parse_init_decl();
+
+    var->var_type = parse_type();
+    var->var_value = parse_init_decl();
+
     expect(';');
+    return var;
 }
 
-void parse_init_decl() {
+struct expr* parse_init_decl() {
     printf("init_decl ");
+
     if (match('=')) {
+        struct expr* expr = malloc(sizeof(struct expr));
         printf("assign ");
         next();
-        if (match('{')) {
-            next();
-            parse_expr();
-            while (match(',')) {
-                next();
-                parse_expr();
-            }
-            expect('}');
-        }
-        else {
-            parse_expr();
-        }
+        expr = parse_expr();
+         return expr;
     }
-    else {
-        parse_expr();
-    }
+    return NULL;
 }
 
-void parse_type() {
+int parse_type() {
     printf("type ");
-    if (match(TOK_SI8)) {
-        
+    if (!match(TOK_SI8) && !match(TOK_SI16)
+        && !match(TOK_SI32) && !match(TOK_SI64)
+        && !match(TOK_UI8) && !match(TOK_UI16)
+        && !match(TOK_UI32) && !match(TOK_UI64)) {
+        error("Unrecognised type");
     }
-    expect(TOK_SI8);
-}
+    int type = curr_token->type;
+    next();
+    return type;
 
-void parse_id() {
+    }
+
+struct token* parse_id() {
     printf("id ");
     expect(TOK_ID);
+    return curr_token;
 }
 
-void parse_compound_stmt() {
+struct stmt* parse_compound_stmt() {
     printf("compound_stmt ");
     expect('{');
+
+    struct stmt* stmt = malloc(sizeof(struct stmt));
+    struct stmt* head = stmt;
+    struct stmt* prev = stmt;
+
+    if (match('}')) {
+        return NULL;
+    }
+
     while (!match('}')) {
         if (match(TOK_VAR)) {
-            parse_var_decl();
+            stmt->stmts.var_decl = parse_var_decl();
         }
         else {
-            parse_stmt();
+            stmt->next = parse_stmt();
         }
+        prev = stmt;
+        stmt->next = malloc(sizeof(struct stmt));
+        stmt = stmt->next;
     }
+
+    free(stmt);
+    prev->next = NULL;
+
     expect('}');
+    return head;
 }
 
-void parse_stmt() {
+struct stmt* parse_stmt() {
     printf("stmt ");
+
     switch (curr_token->type) {
         case '{':
-            parse_compound_stmt();
-            break;
+            return parse_compound_stmt();
         case TOK_IF:
-            parse_if_stmt();
-            break;
+            return parse_if_stmt();
         case TOK_FOR:
-            parse_for_stmt();
-            break;
+            return parse_for_stmt();
         case TOK_WHILE:
-            parse_while_stmt();
-            break;
+            return parse_while_stmt();
         case TOK_BREAK:
-            parse_break_stmt();
-            break;
+            return parse_break_stmt();
         case TOK_CONTINUE:
-            parse_continue_stmt();
-            break;
+            return parse_continue_stmt();
         case TOK_RETURN:
-            parse_return_stmt();
-            break;
+            return parse_return_stmt();
         default:
-            parse_expr_stmt();
-            break;
+            return parse_expr_stmt();
     }
 }
 
-void parse_if_stmt() {
+
+struct stmt* parse_if_stmt() {
+    struct stmt* stmt = malloc(sizeof(struct stmt));
+    struct if_stmt* if_stmt = malloc(sizeof(struct if_stmt));
+
     printf("if ");
     expect(TOK_IF);
+
     expect('(');
-    parse_expr();
+
+    if_stmt->expr = parse_expr();
+
     expect(')');
-    parse_compound_stmt();
-    if (curr_token->type == TOK_ELSE) {
+
+    if_stmt->stmt = parse_compound_stmt();
+
+    int else_count = 0;
+    while (match(TOK_ELSE)) {
         next();
-        parse_compound_stmt();
+        if (match(TOK_IF)) {
+            next();
+            expect('(');
+            if_stmt->elseif_stmt->expr = parse_expr();
+            expect(')');
+            if_stmt->elseif_stmt->stmt = parse_compound_stmt();
+        }
+        else {
+            if (else_count > 1) {
+              error("Only allow one else statement");
+            }
+            else_count += 1;
+        }
     }
+    
+    return stmt;
 }
 
-void parse_for_stmt() {
+struct stmt* parse_for_stmt() {
     printf("for ");
     expect(TOK_FOR);
     expect('(');
@@ -206,172 +259,229 @@ void parse_for_stmt() {
     expect(')');
     
     parse_compound_stmt();
+    return NULL;
 }
 
-void parse_while_stmt() {
+struct stmt* parse_while_stmt() {
     printf("while ");
     expect(TOK_WHILE);
     expect('(');
     parse_expr();
     expect(')');
     parse_compound_stmt();
+    return NULL;
 }
 
-void parse_break_stmt() {
+struct stmt* parse_break_stmt() {
     printf("break ");
     expect(TOK_BREAK);
     expect(';');
+    return NULL;
 }
 
-void parse_continue_stmt() {
+struct stmt* parse_continue_stmt() {
     printf("continue ");
     expect(TOK_CONTINUE);
     expect(';');
+    return NULL;
 }
 
-void parse_return_stmt() {
+struct stmt* parse_return_stmt() {
     printf("return ");
     expect(TOK_RETURN);
     if (!match(';')) {
         parse_expr();
     }
     expect(';');
+    return NULL;
 }
 
-void parse_expr_stmt() {
+struct stmt* parse_expr_stmt() {
+    struct expr* expr;
     printf("expr_stmt ");
     if (curr_token->type != ';') {
-        parse_expr();
+        expr = parse_expr();
     }
     expect(';');
+    return NULL;
 }
 
-void parse_expr() {
+struct expr* parse_expr() {
+    struct expr* expr;
     printf("expr ");
-    parse_assign_expr();
+    expr = parse_assign_expr();
+    return expr;
 }
 
-void parse_assign_expr() {
+struct expr* parse_assign_expr() {
+    struct expr* expr;
+    struct expr* head;
     printf("assign ");
-    parse_cond_or_expr();
+    head = parse_cond_or_expr();
+    expr = head;
     while (curr_token->type == '=') {
         next();
-        parse_cond_or_expr();
+        expr->next = parse_cond_or_expr();
+        expr = expr->next;
     }
+    expr->next = NULL;
+    return head;
 }
 
-void parse_cond_or_expr() {
+struct expr* parse_cond_or_expr() {
+    struct expr* head;
+    struct expr* expr;
     printf("or ");
-    parse_cond_and_expr();
+    head = parse_cond_and_expr();
+    expr = head;
     while (curr_token->type == TOK_OROR) {
         next();
-        parse_cond_and_expr();
+        expr->next = parse_cond_and_expr();
+        expr = expr->next;
     }
+    expr->next = NULL;
+    return head;
 }
 
-void parse_cond_and_expr() {
+struct expr* parse_cond_and_expr() {
+    struct expr* head;
+    struct expr* expr;
     printf("and ");
-    parse_equality_expr();
+    head = parse_equality_expr();
+    expr = head;
     while (curr_token->type == TOK_ANDAND) {
         next();
-        parse_equality_expr();
+        expr->next = parse_equality_expr();
+        expr = expr->next;
     }
+    expr->next = NULL;
+    return head;
 }
 
-void parse_equality_expr() {
+struct expr* parse_equality_expr() {
+    struct expr* head;
+    struct expr* expr;
     printf("equal ");
-    parse_rel_expr();
+    head = parse_rel_expr();
+    expr = head;
     while (curr_token->type == TOK_EQEQ
-    || curr_token->type == TOK_NOTEQ) {
+           || curr_token->type == TOK_NOTEQ) {
         next();
-        parse_rel_expr();
+        expr->next = parse_rel_expr();
+        expr = expr->next;
     }
+    expr->next = NULL;
+    return expr;    
 }
 
-void parse_rel_expr() {
+struct expr* parse_rel_expr() {
+    struct expr* head;
+    struct expr* expr; 
     printf("rel ");
-    parse_additive_expr();
+    head = parse_additive_expr();
+    expr = head;
     while (curr_token->type == '<'
     || curr_token->type == TOK_LTEQ
     || curr_token->type == '>'
     || curr_token->type == TOK_GTEQ) {
         next();
-        parse_additive_expr();
+        expr->next = parse_additive_expr();
+        expr = expr->next;
     }
+    expr->next = NULL;
+    return expr;
 }
 
-void parse_additive_expr() {
+struct expr* parse_additive_expr() {
+    struct expr* head;
+    struct expr* expr; 
     printf("add ");
-    parse_multiplicative_expr();
+    head = parse_multiplicative_expr();
+    expr = head;
     while (curr_token->type == '+'
     || curr_token->type == '-') {
         next();
-        parse_multiplicative_expr();
+        expr->next = parse_multiplicative_expr();
+        expr = expr->next;
     }
+    expr->next = NULL;
+    return expr;
 }
 
-void parse_multiplicative_expr() {
+struct expr* parse_multiplicative_expr() {
+    struct expr* head;
+    struct expr* expr; 
     printf("multi ");
-    parse_unary_expr();
+    head = parse_unary_expr();
+    expr = head;
     while (curr_token->type == '*'
     || curr_token->type == '/') {
         next();
-        parse_unary_expr();
+        expr->next = parse_unary_expr();
+        expr = expr->next;
     }
+    expr->next = NULL;
+    return expr;
 }
 
-void parse_unary_expr() {
+struct expr* parse_unary_expr() {
     printf("unary ");
     switch (curr_token->type) {
         case '+':
             next();
-            parse_unary_expr();
-            break;
+            return parse_unary_expr();
         case '-':
             next();
-            parse_unary_expr();
-            break;
+            return parse_unary_expr();
         case '!':
             next();
-            parse_unary_expr();
-            break;
+            return parse_unary_expr();
         default:
-            parse_primary_expr();
-            break;
+            return parse_primary_expr();
     }
 }
 
-void parse_primary_expr() {
+struct expr* parse_primary_expr() {
+    struct expr* expr;
     printf("primary ");
     switch (curr_token->type) {
         case TOK_ID:
             parse_id();
             if (curr_token->type == '(') {
-                parse_arg_list();
+                struct arg* args = parse_arg_list();
             }
             else if (curr_token->type == '[') {
                 next();
-                parse_expr();
+                expr = parse_expr();
                 expect(']');
             }
             break;
         case '(':
             next();
-            parse_expr();
+            expr = parse_expr();
             expect(')');
             break;
         case TOK_NUM:
-            parse_num();
+            expr = malloc(sizeof(struct expr));
+            expr->nodes = parse_num();
             break;
         case TOK_STRING:
             expect(TOK_STRING);
             break;
+        case '{':
+            while (curr_token->type != '}') {
+                next();
+            }
+            expect('}');
+            break;
         default:
             break;
     }
+    expr = malloc(sizeof(struct expr));
+    return expr;
 }
 
-void parse_param_list() {
+struct param* parse_param_list() {
     printf("param_list ");
     expect('(');
     if (!match(')')) {
@@ -386,9 +496,10 @@ void parse_param_list() {
         }
     }
     expect(')');
+    return NULL;
 }
 
-void parse_arg_list() {
+struct arg* parse_arg_list() {
     printf("arg_list ");
     expect('(');
     if (!match(')')) {
@@ -401,7 +512,7 @@ void parse_arg_list() {
     expect(')');
 }
 
-void parse_num() {
+struct token* parse_num() {
     printf("num ");
     if (match(TOK_NUM)) {
         next();

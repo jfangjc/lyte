@@ -19,7 +19,8 @@ static char* curr;
 struct token* token;
 
 static void advance() {
-    curr++;
+    col_num += 1;
+    curr += 1;
     token->length += 1;
 }
 
@@ -51,21 +52,31 @@ struct token* next_token() {
     token->length = 0;
 
 	while (*curr != '\0') {
-        if ((*curr >= 'A' && *curr <= 'Z') || (*curr >= 'a' && *curr <= 'z') || *curr == '_') {
+        if ((*curr >= 'A' && *curr <= 'Z')
+        || (*curr >= 'a' && *curr <= 'z')) {
             produce_token(token, curr, TOK_ID);
-            while ((*curr >= 'A' && *curr <= 'Z') || (*curr >= 'a' && *curr <= 'z') || *curr == '_'
-            || (*curr >= '0' && *curr <= '9')) {
-                curr++;
-                token->length += 1;
+            while ((*curr >= 'A' && *curr <= 'Z')
+            || (*curr >= 'a' && *curr <= 'z')
+            || (*curr >= '0' && *curr <= '9')
+            || *curr == '_') {
+                advance();
             }
             token->type = generate_type(token);
             return token;
         }
         else if (*curr >= '0' && *curr <= '9') {
             produce_token(token, curr, TOK_NUM);
-            while (*curr >= '0' && *curr <= '9') {
-                curr++;
-                token->length += 1;
+            int dec = 0;
+            while ((*curr >= '0' && *curr <= '9')
+            || *curr == '.') {
+                if (*curr == '.') {
+                    dec += 1;
+                    token->type == TOK_FLOAT;
+                    if (dec > 1) {
+                        error("Invalid floating point number");
+                    }
+                }
+                advance();
             }
             return token;
         }
@@ -73,8 +84,7 @@ struct token* next_token() {
             produce_token(token, curr, *curr);
             advance();
             if (*curr == '=') {
-                curr++;
-                token->length += 1;
+                advance();
                 token->type = TOK_EQEQ;
             }
             return token;
@@ -83,8 +93,7 @@ struct token* next_token() {
             produce_token(token, curr, *curr);
             advance();
             if (*curr == '=') {
-                curr++;
-                token->length += 1;
+                advance();
                 token->type = TOK_GTEQ;
             }
             return token;
@@ -93,8 +102,7 @@ struct token* next_token() {
             produce_token(token, curr, *curr);
             advance();
             if (*curr == '=') {
-                curr++;
-                token->length += 1;
+                advance();
                 token->type = TOK_LTEQ;
             }
             return token;
@@ -103,47 +111,43 @@ struct token* next_token() {
             produce_token(token, curr, *curr);
             advance();
             if (*curr == '=') {
-                curr++;
-                token->length += 1;
+                advance();
                 token->type = TOK_NOTEQ;
             }
             return token;
         }
         else if (*curr == '\"') {
-            produce_token(token, curr++, TOK_STRING);
-            token->length += 1;
-            while (*(curr++) != '\"') {
-                token->length += 1;
+            produce_token(token, curr, TOK_STRING);
+            advance();
+            while (*curr != '\"') {
+                advance();
             }
-            token->length += 1;
+            advance();
             return token;
         }
         else if (*curr == '\'') {
-            produce_token(token, curr++, TOK_CHAR);
-            token->length += 1;
-            while (*(curr++) != '\'') {
-                token->length += 1;
+            produce_token(token, curr, TOK_CHAR);
+            advance();
+            while (*curr != '\'') {
+                advance();
             }
-            token->length += 1;
+            advance();
             return token;
         }
         else if (*curr == '#') {
             while (*(curr++) != '\n') { }
-            continue;
+            line_num += 1;
         }
         else if (*curr == '\n') {
             line_num += 1;
-            curr++;
-            continue;
+            curr += 1;
         }
         else if (*curr == ' ') {
-            curr++;
-            continue;
+            curr += 1;
         }
         else {
             produce_token(token, curr, *curr);
-            token->length += 1;
-            curr++;
+            advance();
             return token;
         }
 	}

@@ -5,4 +5,5 @@ bin/*
 .vscode
 .idea
 cmake-build-debug/
-
+*~
+.cache

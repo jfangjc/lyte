@@ -6,11 +6,18 @@ fn main(): si8 {
     # Define a variable with the type of 8 bits signed integer
     # with the initial value of 0
     var a: si8 = 0;
-
-    var b[10]: si8 = { 0 };
+    var b[10]: si8 = { 0 } ;
 
     log("Hello world!");
 
     # Returns 10
     return a;
 };
+
+# fn main(): si16 {
+# 
+# };
+# 
+# fn main(): si32 {
+# 
+# };

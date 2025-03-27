@@ -26,7 +26,7 @@ enum TOKENS {
     TOK_OROR, TOK_ANDAND, // 287
 
     // values
-    TOK_NUM, TOK_CHAR, TOK_STRING, // 290
+    TOK_NUM, TOK_FLOAT, TOK_CHAR, TOK_STRING, // 290
 
     // others
     TOK_IMPORT, TOK_EXPORT // 292

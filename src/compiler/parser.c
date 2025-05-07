@@ -16,13 +16,13 @@ int parse_type();
 struct token* parse_id();
 struct stmt* parse_compound_stmt();
 struct stmt* parse_stmt();
-struct stmt* parse_if_stmt();
-struct stmt* parse_for_stmt();
-struct stmt* parse_while_stmt();
-struct stmt* parse_break_stmt();
-struct stmt* parse_continue_stmt();
-struct stmt* parse_return_stmt();
-struct stmt* parse_expr_stmt();
+struct if_stmt* parse_if_stmt();
+struct for_stmt* parse_for_stmt();
+struct while_stmt* parse_while_stmt();
+struct break_stmt* parse_break_stmt();
+struct continue_stmt* parse_continue_stmt();
+struct return_stmt* parse_return_stmt();
+struct expr* parse_expr_stmt();
 struct expr* parse_expr();
 struct expr* parse_assign_expr();
 struct expr* parse_cond_or_expr();
@@ -35,7 +35,8 @@ struct expr* parse_unary_expr() ;
 struct expr* parse_primary_expr();
 struct param* parse_param_list();
 struct arg* parse_arg_list();
-struct token* parse_num();
+int parse_int();
+double parse_float();
 
 void next() {
     curr_token = next_token();
@@ -61,12 +62,12 @@ struct program_ast* parse_program() {
     next();
 
     while (curr_token != NULL) {
-        *fn = parse_fn_decl();
+        (*fn) = parse_fn_decl();
         printf("<%i> ", (*fn)->fn_type);
         next();
         fn = &((*fn)->next);
     }
-    *fn = NULL;
+    (*fn) = NULL;
 
     return program;
 }
@@ -95,19 +96,13 @@ struct var_decl* parse_var_decl() {
     struct var_decl* var = malloc(sizeof(struct var_decl));
     printf("var ");
 
-    if (!match(TOK_VAR)) {
-        return NULL;
-    }
-
     expect(TOK_VAR);
 
     var->var_name = parse_id();
 
     if (match('[')) {
         next();
-        if (match(TOK_NUM)) {
-            parse_num();
-        }
+        var->array = parse_int();
         expect(']');
     }
 
@@ -128,8 +123,9 @@ struct expr* parse_init_decl() {
         printf("assign ");
         next();
         expr = parse_expr();
-         return expr;
+        return expr;
     }
+
     return NULL;
 }
 
@@ -167,7 +163,7 @@ struct stmt* parse_compound_stmt() {
 
     while (!match('}')) {
         if (match(TOK_VAR)) {
-            stmt->stmts.var_decl = parse_var_decl();
+            stmt->stmt.var_decl = parse_var_decl();
         }
         else {
             stmt->next = parse_stmt();
@@ -185,31 +181,32 @@ struct stmt* parse_compound_stmt() {
 }
 
 struct stmt* parse_stmt() {
+    struct stmt* stmt = malloc(sizeof(struct stmt));
     printf("stmt ");
 
     switch (curr_token->type) {
         case '{':
-            return parse_compound_stmt();
+            stmt->next = parse_compound_stmt();
         case TOK_IF:
-            return parse_if_stmt();
+            stmt->stmt.if_stmt = parse_if_stmt();
         case TOK_FOR:
-            return parse_for_stmt();
+            stmt->stmt.for_stmt = parse_for_stmt();
         case TOK_WHILE:
-            return parse_while_stmt();
+            stmt->stmt.while_stmt = parse_while_stmt();
         case TOK_BREAK:
-            return parse_break_stmt();
+            stmt->stmt.break_stmt = parse_break_stmt();
         case TOK_CONTINUE:
-            return parse_continue_stmt();
+            stmt->stmt.continue_stmt = parse_continue_stmt();
         case TOK_RETURN:
-            return parse_return_stmt();
+            stmt->stmt.return_stmt = parse_return_stmt();
         default:
-            return parse_expr_stmt();
+            stmt->stmt.expr_stmt = parse_expr_stmt();
     }
+    return stmt;
 }
 
 
-struct stmt* parse_if_stmt() {
-    struct stmt* stmt = malloc(sizeof(struct stmt));
+struct if_stmt* parse_if_stmt() {
     struct if_stmt* if_stmt = malloc(sizeof(struct if_stmt));
 
     printf("if ");
@@ -241,10 +238,10 @@ struct stmt* parse_if_stmt() {
         }
     }
     
-    return stmt;
+    return if_stmt;
 }
 
-struct stmt* parse_for_stmt() {
+struct for_stmt* parse_for_stmt() {
     printf("for ");
     expect(TOK_FOR);
     expect('(');
@@ -262,48 +259,57 @@ struct stmt* parse_for_stmt() {
     return NULL;
 }
 
-struct stmt* parse_while_stmt() {
+struct while_stmt* parse_while_stmt() {
+    struct while_stmt* while_stmt = malloc(sizeof(struct while_stmt));
     printf("while ");
+
     expect(TOK_WHILE);
     expect('(');
-    parse_expr();
+
+    while_stmt->expr = parse_expr();
+
     expect(')');
-    parse_compound_stmt();
-    return NULL;
+
+    while_stmt->stmt = parse_compound_stmt();
+
+    return while_stmt;
 }
 
-struct stmt* parse_break_stmt() {
+struct break_stmt* parse_break_stmt() {
+    struct break_stmt* break_stmt = malloc(sizeof(struct break_stmt));
     printf("break ");
     expect(TOK_BREAK);
     expect(';');
-    return NULL;
+    return break_stmt;
 }
 
-struct stmt* parse_continue_stmt() {
+struct continue_stmt* parse_continue_stmt() {
+    struct continue_stmt* continue_stmt = malloc(sizeof(struct continue_stmt));
     printf("continue ");
     expect(TOK_CONTINUE);
     expect(';');
-    return NULL;
+    return continue_stmt;
 }
 
-struct stmt* parse_return_stmt() {
+struct return_stmt* parse_return_stmt() {
+    struct return_stmt* return_stmt = malloc(sizeof(struct return_stmt));
     printf("return ");
     expect(TOK_RETURN);
     if (!match(';')) {
-        parse_expr();
+        return_stmt->expr = parse_expr();
     }
     expect(';');
-    return NULL;
+    return return_stmt;
 }
 
-struct stmt* parse_expr_stmt() {
+struct expr* parse_expr_stmt() {
     struct expr* expr;
     printf("expr_stmt ");
     if (curr_token->type != ';') {
         expr = parse_expr();
     }
     expect(';');
-    return NULL;
+    return expr;
 }
 
 struct expr* parse_expr() {
@@ -461,9 +467,15 @@ struct expr* parse_primary_expr() {
             expr = parse_expr();
             expect(')');
             break;
-        case TOK_NUM:
+        case TOK_INT:
             expr = malloc(sizeof(struct expr));
-            expr->nodes = parse_num();
+            parse_int();
+            //expr->nodes = parse_int();
+            break;
+        case TOK_FLOAT:
+            expr = malloc(sizeof(struct expr));
+            parse_float();
+            //expr->nodes = parse_int();
             break;
         case TOK_STRING:
             expect(TOK_STRING);
@@ -510,11 +522,42 @@ struct arg* parse_arg_list() {
         }
     }
     expect(')');
+    return NULL;
 }
 
-struct token* parse_num() {
-    printf("num ");
-    if (match(TOK_NUM)) {
-        next();
+int parse_int() {
+    int num = 0;
+    if (match(TOK_INT)) {
+        for (int i = 0; i < curr_token->length; i++) {
+            num *= 10;
+            num += curr_token->start_pos[i] - '0';
+        }
     }
+    printf("%i ", num);
+    next();
+    return num;
+}
+
+double parse_float() {
+    double num = 0;
+    int dec = 0;
+    if (match(TOK_FLOAT)) {
+        for (int i = 0; i < curr_token->length; i++) {
+            if (curr_token->start_pos[i] == '.') {
+                dec = 10;
+                continue;
+            }
+            if (dec == 0) {
+                num *= 10;
+                num += curr_token->start_pos[i] - '0';
+            }
+            else {
+                num += (double)(curr_token->start_pos[i] - '0') / dec;
+                dec *= 10;
+            }
+        }
+    }
+    printf("%lf ", num);
+    next();
+    return num;
 }

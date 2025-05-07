@@ -29,6 +29,8 @@ struct arg {
 struct var_decl {
     struct token* var_name;
     int var_type;
+    int array;
+    int addr;
     struct expr* var_value;
 };
 
@@ -41,17 +43,16 @@ struct expr {
 union stmts {
     struct var_decl* var_decl;
     struct if_stmt* if_stmt;
-    struct stmt* compound_stmt;
-    struct stmt* for_stmt;
-    struct stmt* while_stmt;
-    struct stmt* break_stmt;
-    struct stmt* continue_stmt;
-    struct stmt* return_stmt;
-    struct stmt* expr_stmt;
+    struct for_stmt* for_stmt;
+    struct while_stmt* while_stmt;
+    struct break_stmt* break_stmt;
+    struct continue_stmt* continue_stmt;
+    struct return_stmt* return_stmt;
+    struct expr* expr_stmt;
 };
 
 struct stmt {
-    union stmts stmts;
+    union stmts stmt;
     struct stmt* next;
 };
 
@@ -74,7 +75,26 @@ struct else_stmt {
 struct for_stmt {
     struct var_decl* var;
     struct stmt* stmt;
-}
+};
+
+struct while_stmt {
+    struct expr* expr;
+    struct stmt* stmt;
+};
+
+struct break_stmt {
+    struct var_decl* var;
+    struct stmt* stmt;
+};
+
+struct continue_stmt {
+    struct var_decl* var;
+    struct stmt* stmt;
+};
+
+struct return_stmt {
+    struct expr* expr;
+};
 
 struct program_ast* parse_program();
 

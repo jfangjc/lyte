@@ -11,6 +11,9 @@ static void produce_token(struct token* token, char* start_pos, int type);
 static int token_cmp(struct token* token, char* target, int target_length);
 static int generate_type(struct token* token);
 
+static int is_alpha(int character);
+static int is_num(int character);
+
 static int line_num = 1;
 static int col_num = 1;
 
@@ -52,26 +55,21 @@ struct token* next_token() {
     token->length = 0;
 
 	while (*curr != '\0') {
-        if ((*curr >= 'A' && *curr <= 'Z')
-        || (*curr >= 'a' && *curr <= 'z')) {
+        if (is_alpha(*curr)) {
             produce_token(token, curr, TOK_ID);
-            while ((*curr >= 'A' && *curr <= 'Z')
-            || (*curr >= 'a' && *curr <= 'z')
-            || (*curr >= '0' && *curr <= '9')
-            || *curr == '_') {
+            while (is_alpha(*curr) || is_num(*curr) || *curr == '_') {
                 advance();
             }
             token->type = generate_type(token);
             return token;
         }
-        else if (*curr >= '0' && *curr <= '9') {
-            produce_token(token, curr, TOK_NUM);
+        else if (is_num(*curr)) {
+            produce_token(token, curr, TOK_INT);
             int dec = 0;
-            while ((*curr >= '0' && *curr <= '9')
-            || *curr == '.') {
+            while (is_num(*curr) || *curr == '.') {
                 if (*curr == '.') {
                     dec += 1;
-                    token->type == TOK_FLOAT;
+                    token->type = TOK_FLOAT;
                     if (dec > 1) {
                         error("Invalid floating point number");
                     }
@@ -197,4 +195,13 @@ static int generate_type(struct token* token) {
     else if (token_cmp(token, "continue", 8)) { return TOK_CONTINUE; }
 
 	return TOK_ID;
+}
+
+static int is_alpha(int character) {
+    return (character >= 'A' && character <= 'Z')
+        || (character >= 'a' && character <= 'z');
+}
+
+static int is_num(int character) {
+    return (character >= '0' && character <= '9');
 }

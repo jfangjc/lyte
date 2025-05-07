@@ -23,7 +23,8 @@ static char* type_word(int type) {
     else if (type == TOK_VAR) { return "var"; }
     else if (type == TOK_RETURN) { return "return"; }
 
-    else if (type == TOK_NUM) { return "number"; }
+    else if (type == TOK_INT) { return "int"; }
+    else if (type == TOK_FLOAT) { return "float"; }
     else if (type == TOK_STRING) { return "string"; }
     else if (type == TOK_CHAR) { return "char"; }
     else if (type == TOK_ID) { return "identifier"; } 
@@ -45,7 +46,7 @@ int main(int argc, char** argv){
         token = next_token();
     }*/
     /*struct token* token = next_token();
-   while (token != NULL) {
+    while (token != NULL) {
         printf("%s ", type_word(token->type));
         token = next_token();
     }*/

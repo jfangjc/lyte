@@ -4,51 +4,49 @@
 #include "scanner.h"
 
 struct program_ast {
+    struct let_decl* let_decls;
     struct fn_decl* fn_decls;
 };
 
+struct let_decl {
+    struct token* id;
+    struct expr* value;
+};
+
 struct fn_decl {
-    struct token* fn_name;
-    struct param* fn_params;
-    struct stmt* fn_body;
-    int fn_type;
+    struct token* name;
+    struct param* params;
+    struct stmt* body;
+    int type;
     struct fn_decl* next;
 };
 
-struct param {
-    int type;
-    int value;
-    struct token* token;
-};
-
-struct arg {
-    struct token *name;
-    struct arg* next;
-};
-
 struct var_decl {
-    struct token* var_name;
-    int var_type;
-    int array;
-    int addr;
-    struct expr* var_value;
+    struct token* name;
+    int type;
+    struct expr* value;
 };
 
-struct expr {
-    struct token* nodes;
-    struct toekn *operation;
-    struct expr* next;
+struct addr_decl {
+    struct token* name;
+    int type;
+    struct expr* value;
+};
+
+struct param {
+    struct token* name;
+    int type;
+    struct param* next;
 };
 
 union stmts {
     struct var_decl* var_decl;
     struct if_stmt* if_stmt;
     struct for_stmt* for_stmt;
-    struct while_stmt* while_stmt;
     struct break_stmt* break_stmt;
     struct continue_stmt* continue_stmt;
     struct return_stmt* return_stmt;
-    struct expr* expr_stmt;
+    struct expr_stmt* expr_stmt;
 };
 
 struct stmt {
@@ -57,43 +55,84 @@ struct stmt {
 };
 
 struct if_stmt {
-    struct expr *expr;
-    struct stmt* stmt;
-    struct elseif_stmt* elseif_stmt;
-    struct else_stmt* else_stmt;
-};
-
-struct elseif_stmt {
-    struct expr *expr;
-    struct stmt* stmt;
-};
-
-struct else_stmt {
-    struct stmt* stmt;
+    struct expr* if_cond;
+    struct stmt* if_body;
+    struct expr* else_cond;
+    struct stmt* else_body;
 };
 
 struct for_stmt {
-    struct var_decl* var;
-    struct stmt* stmt;
-};
-
-struct while_stmt {
-    struct expr* expr;
-    struct stmt* stmt;
+    struct expr* cond;
+    struct stmt* body;
 };
 
 struct break_stmt {
-    struct var_decl* var;
     struct stmt* stmt;
 };
 
 struct continue_stmt {
-    struct var_decl* var;
     struct stmt* stmt;
 };
 
 struct return_stmt {
     struct expr* expr;
+};
+
+union exprs {
+    struct assign_expr* assign_expr;
+    struct boolean_expr* boolean_expr;
+    struct equality_expr* equality_expr;
+    struct arith_expr* arith_expr;
+    struct unary_expr* unary_expr;
+    struct call_expr* call_expr;
+    struct token* id;
+    struct token* value_expr;
+};
+
+struct expr_stmt {
+    struct expr* expr;
+};
+
+struct expr {
+    union exprs exprs;
+};
+
+struct assign_expr {
+    struct token* id;
+    struct expr* value;
+};
+
+struct boolean_expr {
+    struct token* left;
+    struct expr* right;
+    int op;
+};
+
+struct equality_expr {
+    struct token* left;
+    struct expr* right;
+    int op;
+};
+
+struct arith_expr {
+    struct token* left;
+    struct expr* right;
+    int op;
+};
+
+struct unary_expr {
+    int op;
+    struct expr* expr;
+};
+
+struct call_expr {
+    struct token* id;
+    struct arg* args;
+};
+
+struct arg {
+    struct expr* value;
+    struct arg* next;
 };
 
 struct program_ast* parse_program();

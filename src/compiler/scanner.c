@@ -114,6 +114,15 @@ struct token* next_token() {
             }
             return token;
         }
+        else if (*curr == ':') {
+            produce_token(token, curr, *curr);
+            advance();
+            if (*curr == '=') {
+                advance();
+                token->type = TOK_ASSIGN;
+            }
+            return token;
+        }
         else if (*curr == '\"') {
             produce_token(token, curr, TOK_STRING);
             advance();
@@ -175,24 +184,20 @@ static int generate_type(struct token* token) {
     else if (token_cmp(token, "ui16", 4)) { return TOK_UI16; }
     else if (token_cmp(token, "ui32", 4)) { return TOK_UI32; }
     else if (token_cmp(token, "ui64", 4)) { return TOK_UI64; }
-    else if (token_cmp(token, "null", 4)) { return TOK_NULL; }
 
-    else if (token_cmp(token, "addr", 4)) { return TOK_ADDR; }
+    else if (token_cmp(token, "let", 3)) { return TOK_LET; }
     else if (token_cmp(token, "fn", 2)) { return TOK_FN; }
-    else if (token_cmp(token, "def", 3)) { return TOK_CONST; }
     else if (token_cmp(token, "var", 3)) { return TOK_VAR; }
-    else if (token_cmp(token, "return", 6)) { return TOK_RETURN; }
+    else if (token_cmp(token, "addr", 4)) { return TOK_ADDR; }
 
     else if (token_cmp(token, "if", 2)) { return TOK_IF; }
     else if (token_cmp(token, "else", 4)) { return TOK_ELSE; }
 
-    else if (token_cmp(token, "loop", 4)) { return TOK_LOOP; }
-    else if (token_cmp(token, "while", 5)) { return TOK_WHILE; }
     else if (token_cmp(token, "for", 3)) { return TOK_FOR; }
-    else if (token_cmp(token, "in", 2)) { return TOK_IN; }
-    else if (token_cmp(token, "to", 2)) { return TOK_TO; }
     else if (token_cmp(token, "break", 5)) { return TOK_BREAK; }
     else if (token_cmp(token, "continue", 8)) { return TOK_CONTINUE; }
+
+    else if (token_cmp(token, "return", 6)) { return TOK_RETURN; }
 
 	return TOK_ID;
 }

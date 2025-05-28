@@ -1,9 +1,8 @@
 bin/*
-!./bin
-*/**/.cache
+obj/*
+
 .vs
 .vscode
 .idea
-cmake-build-debug/
-*~
-.cache
+
+*.s

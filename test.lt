@@ -5,19 +5,14 @@ fn main(): si8 {
     
     # Define a variable with the type of 8 bits signed integer
     # with the initial value of 0
-    var a: si8 = 111.231;
-    var b[10]: si8 = { 0 } ;
-
-    log("Hello world!");
+    var a: si8 := 0;
 
     # Returns 0
     return a;
 };
 
-# fn main(): si16 {
-# 
-# };
-# 
-# fn main(): si32 {
-# 
-# };
+fn a(): si8 {
+};
+
+fn b(): si8 {
+};

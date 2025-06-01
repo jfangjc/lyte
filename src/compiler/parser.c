@@ -21,6 +21,7 @@ struct token* parse_id();
 
 struct stmt* parse_compound_stmt();
 struct stmt* parse_stmt();
+
 struct if_stmt* parse_if_stmt();
 struct for_stmt* parse_for_stmt();
 struct break_stmt* parse_break_stmt();
@@ -29,15 +30,10 @@ struct return_stmt* parse_return_stmt();
 struct expr_stmt* parse_expr_stmt();
 
 struct expr* parse_expr();
-
 struct arg* parse_arg_list();
 
 int parse_int();
 double parse_float();
-
-void init() {
-    curr_token = next_token();
-}
 
 void next() {
     curr_token = next_token();
@@ -60,7 +56,7 @@ int match(int type) {
 struct program_ast* parse_program() {
     struct program_ast* program = malloc(sizeof(struct program_ast));
     struct fn_decl** fn = &(program->fn_decls);
-    init();
+    curr_token = next_token();
 
     while (curr_token != NULL) {
         (*fn) = parse_fn_decl();
@@ -171,10 +167,8 @@ struct expr* parse_initialiser() {
 
 int parse_type() {
     printf("type ");
-    if (!match(TOK_SI8) && !match(TOK_SI16)
-        && !match(TOK_SI32) && !match(TOK_SI64)
-        && !match(TOK_UI8) && !match(TOK_UI16)
-        && !match(TOK_UI32) && !match(TOK_UI64)) {
+    if (curr_token->type < TOK_S8 || curr_token->type > TOK_F128) {
+        printf("< %i >", curr_token->type);
         error("Unrecognised type");
     }
     int type = curr_token->type;
@@ -193,29 +187,20 @@ struct stmt* parse_compound_stmt() {
     printf("compound_stmt ");
     expect('{');
 
-    struct stmt* stmt = malloc(sizeof(struct stmt));
-    struct stmt* head = stmt;
-    struct stmt* prev = stmt;
-
     if (match('}')) {
         next();
         return NULL;
     }
 
+    struct stmt* head = parse_stmt();
+    struct stmt* stmt = head;
+
     while (!match('}')) {
-        if (match(TOK_VAR)) {
-            stmt->stmt.var_decl = parse_var_decl();
-        }
-        else {
-            stmt->next = parse_stmt();
-        }
-        prev = stmt;
-        stmt->next = malloc(sizeof(struct stmt));
+        stmt->next = parse_stmt();
         stmt = stmt->next;
     }
 
-    free(stmt);
-    prev->next = NULL;
+    stmt->next = NULL;
 
     expect('}');
     return head;
@@ -226,6 +211,12 @@ struct stmt* parse_stmt() {
     struct stmt* stmt = malloc(sizeof(struct stmt));
    
     switch (curr_token->type) {
+        case TOK_VAR:
+            stmt->stmt.var_decl = parse_var_decl();
+            break;
+        case TOK_ADDR:
+            stmt->stmt.addr_decl = parse_addr_decl();
+            break;
         case TOK_IF:
             stmt->stmt.if_stmt = parse_if_stmt();
             break;
@@ -287,7 +278,6 @@ struct for_stmt* parse_for_stmt() {
     printf("for ");
     struct for_stmt* for_stmt = malloc(sizeof(struct for_stmt));
     
-
     expect(TOK_FOR);
     expect('(');
 
@@ -382,7 +372,12 @@ struct expr* parse_expr() {
             next();
             expr->exprs.call_expr = malloc(sizeof(struct call_expr));
             expr->exprs.call_expr->id = id;
-            expr->exprs.call_expr->args = parse_arg_list();
+            if (curr_token->type != ')') {
+                expr->exprs.call_expr->args = parse_arg_list();
+            }
+            else {
+                expr->exprs.call_expr->args = NULL;
+            }
             expect(')');
         }
         else {
@@ -413,6 +408,21 @@ struct expr* parse_expr() {
     }
     return expr;
 }
+
+struct arg* parse_arg_list() {
+    struct arg* arg = malloc(sizeof(struct arg));
+    struct arg* head = arg;
+    arg->value = parse_expr();
+    while (!match(')')) {
+        arg->next = malloc(sizeof(struct arg));
+        arg = arg->next;
+        expect(',');
+        arg->value = parse_expr();
+    }
+    arg->next = NULL;
+    return head;
+}
+
 
 int parse_int() {
     int num = 0;
@@ -449,23 +459,4 @@ double parse_float() {
     printf("%lf ", num);
     next();
     return num;
-}
-
-struct arg* parse_arg_list() {
-    if (match(')')) {
-        return NULL;
-    }
-    else {
-        struct arg* arg = malloc(sizeof(struct arg));
-        struct arg* head = arg;
-        arg->value = parse_expr();
-        while (!match(')')) {
-            arg->next = malloc(sizeof(struct arg));
-            arg = arg->next;
-            expect(',');
-            arg->value = parse_expr();
-        }
-        arg->next = NULL;
-        return head;
-    }
 }

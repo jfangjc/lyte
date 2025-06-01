@@ -1,18 +1,18 @@
 # This is comment
 
 # This is a function, with the return type of 8 bits signed integer
-fn main(): si8 {
+fn main(): s8 {
     
     # Define a variable with the type of 8 bits signed integer
     # with the initial value of 0
-    var a: si8 := 0;
+    var a: s8 := 0;
 
     # Returns 0
     return a;
 };
 
-fn a(): si8 {
+fn a(): s8 {
 };
 
-fn b(): si8 {
+fn b(): s8 {
 };

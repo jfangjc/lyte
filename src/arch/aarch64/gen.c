@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 
+#include "common.h"
 #include "parser.h"
 #include "emitter.h"
 
@@ -21,3 +22,10 @@ void gen_fn(struct fn_decl* fn_decl) {
     emit_label(fn_decl->name->start_pos, fn_decl->name->length);
 }
 
+void gen_var(struct var_decl* var_decl) {
+    switch (var_decl->type) {
+        case TOK_S8:
+        case TOK_S16:
+            break;
+    }
+}

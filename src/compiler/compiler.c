@@ -7,6 +7,8 @@
 #include "parser.h"
 #include "gen.h"
 
+#include "ht.h"
+
 static char* type_word(int type) {
     if (type == TOK_EOF) { return "eof"; }
     else if (type == TOK_LET) { return "let"; }
@@ -24,14 +26,19 @@ static char* type_word(int type) {
 
     else if (type == TOK_ID) { return "identifier"; }
 
-    else if (type == TOK_SI8) { return "si8"; }
-    else if (type == TOK_SI16) { return "si16"; }
-    else if (type == TOK_SI32) { return "si32"; }
-    else if (type == TOK_SI64) { return "si64"; }
-    else if (type == TOK_UI8) { return "ui8"; }
-    else if (type == TOK_UI16) { return "ui16"; }
-    else if (type == TOK_UI32) { return "ui32"; }
-    else if (type == TOK_UI64) { return "ui64"; }
+    else if (type == TOK_S8) { return "s8"; }
+    else if (type == TOK_S16) { return "s16"; }
+    else if (type == TOK_S32) { return "s32"; }
+    else if (type == TOK_S64) { return "s64"; }
+    else if (type == TOK_S128) { return "s128"; }
+    else if (type == TOK_U8) { return "u8"; }
+    else if (type == TOK_U16) { return "u16"; }
+    else if (type == TOK_U32) { return "u32"; }
+    else if (type == TOK_U64) { return "u64"; }
+    else if (type == TOK_U128) { return "u128"; }
+    else if (type == TOK_F32) { return "f32"; }
+    else if (type == TOK_F64) { return "f64"; }
+    else if (type == TOK_F128) { return "f128"; }
 
     else if (type == TOK_ASSIGN) { return "assign"; }
 
@@ -74,9 +81,27 @@ int main(int argc, char** argv){
         printf("> ");
         token = next_token();
     }*/
-    struct program_ast* program = parse_program();
-    gen("./test.s", program);
-    
+    //struct program_ast* program = parse_program();
+    //gen("./test.s", program);
+    char* test[8] = {"a", "abd", "asdas", "rewr",
+    "ewrjwej", "vndfjk", "438vjvje_32j", "d"};
+    int len[8] = {1, 3, 5, 4, 7, 6, 12, 1};
+    struct ht* ht = ht_create();
+    struct token* tokens[8];
+
+    for (int i = 0; i < 8; i++) {
+        struct token* token = malloc(sizeof(struct token));
+        tokens[i] = token;
+        token->start_pos = test[i];
+        token->length = len[i];
+        ht_insert(ht, token);
+    }
+
+    for (int i = 0; i < 8; i++) {
+        printf("< %s > ", ht_lookup(ht, tokens[i])->start_pos);
+    }
+    printf("%i : %i", ht->capacity, ht->size);
+
     printf("Compilation finished\n");
     return 0;
 }

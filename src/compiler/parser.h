@@ -41,6 +41,7 @@ struct param {
 
 union stmts {
     struct var_decl* var_decl;
+    struct addr_decl* addr_decl;
     struct if_stmt* if_stmt;
     struct for_stmt* for_stmt;
     struct break_stmt* break_stmt;

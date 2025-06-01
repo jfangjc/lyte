@@ -1,7 +1,13 @@
 CC := clang
 
-CFLAGS := -Wall -Wextra -g -I./src #-fsanitize=address
-LDFLAGS := #-fsanitize=address
+CFLAGS := -Wall -Wextra -g -I./src/compiler -fsanitize=address
+LDFLAGS := -fsanitize=address
+
+ifeq ($(shell arch), aarch64)
+	ARCHFLAGS := -I./src/arch/aarch64
+else
+	ARCHFLAGS :=-I./src/arch/universal
+endif
 
 SRCDIR := ./src
 OBJDIR := ./obj
@@ -23,12 +29,15 @@ $(TARGET): $(OBJS)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(ARCHFLAGS) -c $< -o $@
 
 clean:
 	rm -rf $(OBJDIR) $(BINDIR) test.s
 
 test:
 	$(TARGET) ./test.lt
+
+run:
+	make clean && make all && make test
 
 .PHONY: all clean test

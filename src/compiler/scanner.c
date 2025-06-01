@@ -175,15 +175,21 @@ static int token_cmp(struct token* token, char* target, int target_length) {
 }
 
 static int generate_type(struct token* token) {
-    if (token_cmp(token, "si8", 3)) { return TOK_SI8; }
-    else if (token_cmp(token, "si16", 4)) { return TOK_SI16; }
-    else if (token_cmp(token, "si32", 4)) { return TOK_SI32; }
-    else if (token_cmp(token, "si64", 4)) { return TOK_SI64; }
+    if (token_cmp(token, "s8", 2)) { return TOK_S8; }
+    else if (token_cmp(token, "s16", 3)) { return TOK_S16; }
+    else if (token_cmp(token, "s32", 3)) { return TOK_S32; }
+    else if (token_cmp(token, "s64", 3)) { return TOK_S64; }
+    else if (token_cmp(token, "s128", 4)) { return TOK_S128; }
 
-    else if (token_cmp(token, "ui8", 3)) { return TOK_UI8; }
-    else if (token_cmp(token, "ui16", 4)) { return TOK_UI16; }
-    else if (token_cmp(token, "ui32", 4)) { return TOK_UI32; }
-    else if (token_cmp(token, "ui64", 4)) { return TOK_UI64; }
+    else if (token_cmp(token, "u8", 2)) { return TOK_U8; }
+    else if (token_cmp(token, "u16", 3)) { return TOK_U16; }
+    else if (token_cmp(token, "u32", 3)) { return TOK_U32; }
+    else if (token_cmp(token, "u64", 3)) { return TOK_U64; }
+    else if (token_cmp(token, "u128", 4)) { return TOK_U128; }
+
+    else if (token_cmp(token, "f32", 3)) { return TOK_F32; }
+    else if (token_cmp(token, "f64", 3)) { return TOK_F64; }
+    else if (token_cmp(token, "f128", 4)) { return TOK_F128; }
 
     else if (token_cmp(token, "let", 3)) { return TOK_LET; }
     else if (token_cmp(token, "fn", 2)) { return TOK_FN; }

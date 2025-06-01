@@ -1,6 +1,5 @@
 <h1 align="center">Lyte</h1>
 <h3 align="center">Yet another programming language that no one use</h3>
----
 
 # What do I want to achieve?
 - Support passing function address as a type

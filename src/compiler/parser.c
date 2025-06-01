@@ -17,6 +17,7 @@ struct param* parse_param_list();
 struct expr* parse_initialiser();
 
 int parse_type();
+
 struct token* parse_id();
 
 struct stmt* parse_compound_stmt();
@@ -238,7 +239,6 @@ struct stmt* parse_stmt() {
     return stmt;
 }
 
-
 struct if_stmt* parse_if_stmt() {
     printf("if ");
     struct if_stmt* if_stmt = malloc(sizeof(struct if_stmt));
@@ -254,23 +254,37 @@ struct if_stmt* parse_if_stmt() {
     if_stmt->if_body = parse_compound_stmt();
 
     int else_count = 0;
+    struct elseif_stmt* elseif = NULL;
+    struct elseif_stmt* head = NULL;
+
     while (match(TOK_ELSE)) {
         next();
         if (match(TOK_IF)) {
+            printf("elseif ");
+            if (elseif == NULL) {
+                elseif = malloc(sizeof(struct elseif_stmt));
+                head = elseif;
+            }
+            else {
+                elseif->next = malloc(sizeof(struct elseif_stmt));
+                elseif = elseif->next;
+            }
+
             next();
             expect('(');
-            if_stmt->else_cond = parse_expr();
+            elseif->cond = parse_expr();
             expect(')');
-            if_stmt->else_body = parse_compound_stmt();
+            elseif->body = parse_compound_stmt();
         }
         else {
-            if (else_count > 1) {
-              error("Only allow one else statement");
-            }
-            else_count += 1;
+            printf("else ");
+            if_stmt->elseif_stmt = head;
+            if_stmt->else_body = parse_compound_stmt();
+            return if_stmt;
         }
     }
     
+    if_stmt->elseif_stmt = head;
     return if_stmt;
 }
 

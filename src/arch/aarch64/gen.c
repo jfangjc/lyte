@@ -29,3 +29,11 @@ void gen_var(struct var_decl* var_decl) {
             break;
     }
 }
+
+void gen_if() {
+    
+}
+
+void gen_for() {
+
+}

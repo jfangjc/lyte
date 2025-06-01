@@ -58,8 +58,14 @@ struct stmt {
 struct if_stmt {
     struct expr* if_cond;
     struct stmt* if_body;
-    struct expr* else_cond;
+    struct elseif_stmt* elseif_stmt;
     struct stmt* else_body;
+};
+
+struct elseif_stmt {
+    struct expr* cond;
+    struct stmt* body;
+    struct elseif_stmt* next;
 };
 
 struct for_stmt {

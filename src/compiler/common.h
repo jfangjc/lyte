@@ -23,7 +23,9 @@ enum TOKENS {
     TOK_F32, TOK_F64, TOK_F128, // 279
     
     //assign 
-    TOK_ASSIGN, // 280
+    TOK_ASSIGN,
+    TOK_ADD_ASSIGN, TOK_SUB_ASSIGN,
+    TOK_MUL_ASSIGN, TOK_DIV_ASSIGN, // 280
 
     // compare
     TOK_EQEQ, TOK_NOTEQ, TOK_GTEQ, TOK_LTEQ, // 284

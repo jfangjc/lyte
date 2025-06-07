@@ -1,0 +1,4 @@
+fn main() : void {
+    log("Hello World!");
+    return;
+}

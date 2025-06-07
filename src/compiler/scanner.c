@@ -123,6 +123,42 @@ struct token* next_token() {
             }
             return token;
         }
+        else if (*curr == '+') {
+            produce_token(token, curr, *curr);
+            advance();
+            if (*curr == '=') {
+                advance();
+                token->type = TOK_ADD_ASSIGN;
+            }
+            return token;
+        }
+        else if (*curr == '-') {
+            produce_token(token, curr, *curr);
+            advance();
+            if (*curr == '=') {
+                advance();
+                token->type = TOK_SUB_ASSIGN;
+            }
+            return token;
+        }
+        else if (*curr == '*') {
+            produce_token(token, curr, *curr);
+            advance();
+            if (*curr == '=') {
+                advance();
+                token->type = TOK_MUL_ASSIGN;
+            }
+            return token;
+        }
+        else if (*curr == '/') {
+            produce_token(token, curr, *curr);
+            advance();
+            if (*curr == '=') {
+                advance();
+                token->type = TOK_DIV_ASSIGN;
+            }
+            return token;
+        }
         else if (*curr == '\"') {
             produce_token(token, curr, TOK_STRING);
             advance();

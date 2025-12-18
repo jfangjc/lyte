@@ -1,6 +1,7 @@
 #include "ht.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "scanner.h"
 
@@ -15,14 +16,14 @@ unsigned int hash(char* item, int len) {
     return hash;
 }
 
-struct ht* ht_create() {
+struct ht* ht_create(void) {
     struct ht* ht = malloc(sizeof(struct ht));
 
     ht->size = 0;
     ht->capacity = ht_init_capacity;
-    ht->entries = malloc(ht->capacity * sizeof(struct entry));
+    ht->entries = malloc((unsigned long)(ht->capacity) * sizeof(struct entry));
 
-    for (int i = 0; i < ht_init_capacity; i++) {
+    for (unsigned long i = 0; i < ht_init_capacity; i++) {
         ht->entries[i].value = NULL;
     }
 
@@ -31,7 +32,7 @@ struct ht* ht_create() {
 
 unsigned int ht_insert(struct ht* ht, struct token* value) {
     unsigned int key = hash(value->start_pos, value->length);
-    int index = (key & (unsigned int)(ht->capacity - 1));
+    unsigned int index = (key & (unsigned int)(ht->capacity - 1));
 
     if (ht->size >= ht->capacity * 0.8) {
         ht_expand(ht);
@@ -52,32 +53,43 @@ unsigned int ht_insert(struct ht* ht, struct token* value) {
 
 struct token* ht_lookup(struct ht* ht, struct token* value) {
     unsigned int key = hash(value->start_pos, value->length);
-    int index = (key & (unsigned int)(ht->capacity - 1));
+    unsigned int index = (key & (unsigned int)(ht->capacity - 1));
 
-    while (ht->entries[index].value->length != value->length
-        || ht->entries[index].key != key) {
+    while (ht->entries[index].value != NULL) {
+        if (ht->entries[index].key == key &&
+            ht->entries[index].value->length == value->length &&
+            strncmp(ht->entries[index].value->start_pos, value->start_pos,
+                    (size_t)value->length) == 0) {
+            return ht->entries[index].value;
+        }
         index += 1;
         if (index >= ht->capacity) {
             index = 0;
         }
     }
 
-    return ht->entries[index].value;
+    return NULL;
+}
+
+int ht_free(struct ht* ht) {
+    free(ht->entries);
+    free(ht);
+    return 0;
 }
 
 void ht_expand(struct ht* ht) {
-    int old_capacity = ht->capacity;
+    unsigned int old_capacity = ht->capacity;
     struct entry* old_entries = ht->entries;
 
     ht->capacity = ht->capacity * 2;
     ht->size = 0;
     ht->entries = malloc(ht->capacity * sizeof(struct entry));
 
-    for (int i = 0; i < ht->capacity; i++) {
+    for (unsigned int i = 0; i < ht->capacity; i++) {
         ht->entries[i].value = NULL;
     }
 
-    for (int i = 0; i < old_capacity; i++) {
+    for (unsigned int i = 0; i < old_capacity; i++) {
         if (old_entries[i].value != NULL) {
             ht_insert(ht, old_entries[i].value);
             old_entries[i].value = NULL;

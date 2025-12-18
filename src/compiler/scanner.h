@@ -9,6 +9,6 @@ struct token {
 };
 
 char* read_file(char* path);
-struct token *next_token();
+struct token* next_token(void);
 
 #endif

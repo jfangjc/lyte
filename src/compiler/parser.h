@@ -8,11 +8,6 @@ struct program_ast {
     struct fn_decl* fn_decls;
 };
 
-struct let_decl {
-    struct token* id;
-    struct expr* value;
-};
-
 struct fn_decl {
     struct token* name;
     struct param* params;
@@ -21,10 +16,11 @@ struct fn_decl {
     struct fn_decl* next;
 };
 
-struct var_decl {
+struct let_decl {
     struct token* name;
     int type;
     struct expr* value;
+    int mut;
 };
 
 struct addr_decl {
@@ -37,10 +33,11 @@ struct param {
     struct token* name;
     int type;
     struct param* next;
+    int mut;
 };
 
 union stmts {
-    struct var_decl* var_decl;
+    struct let_decl* let_decl;
     struct addr_decl* addr_decl;
     struct if_stmt* if_stmt;
     struct for_stmt* for_stmt;
@@ -50,7 +47,19 @@ union stmts {
     struct expr_stmt* expr_stmt;
 };
 
+enum StmtType {
+    STMT_LET,
+    STMT_ADDR,
+    STMT_IF,
+    STMT_FOR,
+    STMT_BREAK,
+    STMT_CONTINUE,
+    STMT_RETURN,
+    STMT_EXPR
+};
+
 struct stmt {
+    enum StmtType type;
     union stmts stmt;
     struct stmt* next;
 };
@@ -100,29 +109,42 @@ struct expr_stmt {
     struct expr* expr;
 };
 
+enum ExprType {
+    EXPR_ASSIGN,
+    EXPR_BOOLEAN,
+    EXPR_EQUALITY,
+    EXPR_ARITH,
+    EXPR_UNARY,
+    EXPR_CALL,
+    EXPR_ID,
+    EXPR_VALUE
+};
+
 struct expr {
+    enum ExprType type;
     union exprs exprs;
 };
 
 struct assign_expr {
     struct token* id;
     struct expr* value;
+    int op;
 };
 
 struct boolean_expr {
-    struct token* left;
+    struct expr* left;
     struct expr* right;
     int op;
 };
 
 struct equality_expr {
-    struct token* left;
+    struct expr* left;
     struct expr* right;
     int op;
 };
 
 struct arith_expr {
-    struct token* left;
+    struct expr* left;
     struct expr* right;
     int op;
 };
@@ -142,6 +164,6 @@ struct arg {
     struct arg* next;
 };
 
-struct program_ast* parse_program();
+struct program_ast* parse_program(void);
 
 #endif

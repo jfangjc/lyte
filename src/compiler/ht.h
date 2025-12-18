@@ -15,19 +15,19 @@ struct entry {
 
 struct ht {
     struct entry* entries;
-    int size;
-    int capacity;
+    unsigned int size;
+    unsigned int capacity;
 };
 
 unsigned int hash(char* item, int len);
 
-struct ht* ht_create();
+struct ht* ht_create(void);
 
 unsigned int ht_insert(struct ht* ht, struct token* value);
 
 struct token* ht_lookup(struct ht* ht, struct token* value);
 
-int ht_free();
+int ht_free(struct ht* ht);
 
 void ht_expand(struct ht* ht);
 

@@ -12,30 +12,58 @@ set(LYTE_VERSION "${LYTE_VERSION_MAJOR}.${LYTE_VERSION_MINOR}.${LYTE_VERSION_PAT
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
-if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|amd64)$")
-    set(ARCH_FOLDER "x86_64")
-elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64|arm64)$")
-    set(ARCH_FOLDER "aarch64")
-else()
-    message(FATAL_ERROR "Unsupported architecture: ${CMAKE_SYSTEM_PROCESSOR}")
-endif()
+# set(ARCH_FOLDER "llvm")
+# if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|amd64)$")
+#     set(ARCH_FOLDER "llvm")
+# elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64|arm64)$")
+#     set(ARCH_FOLDER "aarch64")
+# else()
+#     message(FATAL_ERROR "Unsupported architecture: ${CMAKE_SYSTEM_PROCESSOR}")
+# endif()
 
-if (MSVC)
+# Set output directories to the build folder
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+
+if(MSVC)
     add_compile_options(/W4 /WX)
 else()
-    add_compile_options(-Wall -Wextra -Wpedantic)
+    add_compile_options(
+        -Wall
+        -Wextra
+        -Wpedantic
+        -Wshadow
+        -Wformat=2
+        -Wcast-align
+        -Wconversion
+        -Wsign-conversion
+        -Wnull-dereference
+    )
+    if(CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID STREQUAL "GNU")
+        add_compile_options(-Wdouble-promotion)
+    endif()
 endif()
 
 file(GLOB_RECURSE SRC_FILES "${CMAKE_SOURCE_DIR}/src/compiler/*.c")
-file(GLOB_RECURSE ARCH_SRC_FILE "${CMAKE_SOURCE_DIR}/src/arch/${ARCH_FOLDER}/*.c")
 
-list(APPEND SRC_FILES ${ARCH_SRC_FILE})
+# file(GLOB_RECURSE ARCH_SRC_FILE "${CMAKE_SOURCE_DIR}/src/arch/${ARCH_FOLDER}/*.c")
+# list(APPEND SRC_FILES ${ARCH_SRC_FILE})
 
 include_directories(
     ${CMAKE_SOURCE_DIR}/src/compiler
-    ${CMAKE_SOURCE_DIR}/src/arch/${ARCH_FOLDER}
+    # ${CMAKE_SOURCE_DIR}/src/arch/${ARCH_FOLDER}
 )
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
 
-install(TARGETS ${PROJECT_NAME} DESTINATION bin)
+install(TARGETS ${PROJECT_NAME} DESTINATION ${CMAKE_BINARY_DIR})
+
+# Unit Tests
+file(GLOB_RECURSE TEST_FILES "${CMAKE_SOURCE_DIR}/test/*.c")
+list(FILTER SRC_FILES EXCLUDE REGEX ".*compiler.c$")
+
+add_executable(unit_test ${TEST_FILES} ${SRC_FILES})
+target_include_directories(unit_test PRIVATE ${CMAKE_SOURCE_DIR}/src/compiler)
+
+install(TARGETS unit_test DESTINATION ${CMAKE_BINARY_DIR})

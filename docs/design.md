@@ -1,6 +1,3 @@
-- arch/
-    - evaluator.c
-        - Covert the code to the equivlant asm code
 - compiler/
     - scanner.c
         - Return the next word with the corresponding token type.
@@ -8,7 +5,11 @@
         - Construct the Abstract Syntax Tree.
     - optimiser.c
         - Merge some statements together to reduce the amount of redundent code generated.
-    - token.h
+    - common.h
+    - emitter.c
+    - gen.c
+    - ht.c
+    - error.c
 
 
 # Scanner
@@ -23,5 +24,16 @@ Read in the whole file
     - Function arguments
     - Function contents
 
-for (int n : ns) {}
-loo (int i : 10) {}
+`fn for (n : s8): s8 {}`
+`fn loo (i : u16): u16 {}`
+
+# Variables
+- Variables are immutable by default using `let`.
+- Mutable variables are declared using `let mut`.
+    - `let x : i32 = 10;` (Immutable)
+    - `let mut y : i32 = 20;` (Mutable)
+
+# Macros
+- Macros are defined using the C-style `define` directive.
+- They are processed before compilation.
+    - `define MAX(a, b) ((a) > (b) ? (a) : (b))`

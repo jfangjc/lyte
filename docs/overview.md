@@ -6,4 +6,4 @@ fn main(): null {
 ```
 
 # Type Systems
-[Lyte Type Systems](docs/types.md)
+[Lyte Type Systems](types.md)

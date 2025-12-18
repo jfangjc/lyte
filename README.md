@@ -18,7 +18,7 @@ Instructions for downloading and installing the Lyte compiler and toolchains.
 
 ### Learn Lyte
 
-### [Overview](docs/overview.md)
+#### [Overview](docs/overview.md)
 Introduction to the Lyte's syntax and features.
 
 #### [Design](docs/design.md)

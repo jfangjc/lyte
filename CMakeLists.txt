@@ -39,19 +39,17 @@ else()
         -Wconversion
         -Wsign-conversion
         -Wnull-dereference
+        -Wdouble-promotion
     )
-    if(CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID STREQUAL "GNU")
-        add_compile_options(-Wdouble-promotion)
-    endif()
 endif()
 
-file(GLOB_RECURSE SRC_FILES "${CMAKE_SOURCE_DIR}/src/compiler/*.c")
+file(GLOB_RECURSE SRC_FILES "${CMAKE_SOURCE_DIR}/src/*.c")
 
 # file(GLOB_RECURSE ARCH_SRC_FILE "${CMAKE_SOURCE_DIR}/src/arch/${ARCH_FOLDER}/*.c")
 # list(APPEND SRC_FILES ${ARCH_SRC_FILE})
 
 include_directories(
-    ${CMAKE_SOURCE_DIR}/src/compiler
+    ${CMAKE_SOURCE_DIR}/src
     # ${CMAKE_SOURCE_DIR}/src/arch/${ARCH_FOLDER}
 )
 
@@ -64,6 +62,6 @@ file(GLOB_RECURSE TEST_FILES "${CMAKE_SOURCE_DIR}/test/*.c")
 list(FILTER SRC_FILES EXCLUDE REGEX ".*compiler.c$")
 
 add_executable(unit_test ${TEST_FILES} ${SRC_FILES})
-target_include_directories(unit_test PRIVATE ${CMAKE_SOURCE_DIR}/src/compiler)
+target_include_directories(unit_test PRIVATE ${CMAKE_SOURCE_DIR}/src)
 
 install(TARGETS unit_test DESTINATION ${CMAKE_BINARY_DIR})

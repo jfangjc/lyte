@@ -1,5 +1,5 @@
-#include "../src/compiler/ht.h"
-#include "../src/compiler/scanner.h"
+#include "../src/ht.h"
+#include "../src/scanner.h"
 #include "framework.h"
 #include <stdio.h>
 #include <stdlib.h>

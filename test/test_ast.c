@@ -1,5 +1,5 @@
-#include "../src/compiler/ast.h"
-#include "../src/compiler/parser.h"
+#include "../src/ast.h"
+#include "../src/parser.h"
 #include "framework.h"
 
 #include "test_utils.h"

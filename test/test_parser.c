@@ -1,6 +1,6 @@
-#include "../src/compiler/common.h"
-#include "../src/compiler/parser.h"
-#include "../src/compiler/scanner.h"
+#include "../src/common.h"
+#include "../src/parser.h"
+#include "../src/scanner.h"
 #include "framework.h"
 
 #include "test_utils.h"

@@ -1,5 +1,5 @@
-#ifndef COMPILER_GEN
-#define COMPILER_GEN
+#ifndef COMPILER_CODEGEN
+#define COMPILER_CODEGEN
 
 #include "parser.h"
 

@@ -43,25 +43,29 @@ else()
     )
 endif()
 
-file(GLOB_RECURSE SRC_FILES "${CMAKE_SOURCE_DIR}/src/*.c")
+# Compiler Library Sources
+file(GLOB_RECURSE COMPILER_SRC_FILES "${CMAKE_SOURCE_DIR}/compiler/*.c")
 
-# file(GLOB_RECURSE ARCH_SRC_FILE "${CMAKE_SOURCE_DIR}/src/arch/${ARCH_FOLDER}/*.c")
-# list(APPEND SRC_FILES ${ARCH_SRC_FILE})
-
+# Include Directories
 include_directories(
-    ${CMAKE_SOURCE_DIR}/src
-    # ${CMAKE_SOURCE_DIR}/src/arch/${ARCH_FOLDER}
+    ${CMAKE_SOURCE_DIR}/compiler
+    ${CMAKE_SOURCE_DIR}/compiler/frontend/lexer
+    ${CMAKE_SOURCE_DIR}/compiler/frontend/parser
+    ${CMAKE_SOURCE_DIR}/compiler/frontend/ast
+    ${CMAKE_SOURCE_DIR}/compiler/backend/codegen
+    ${CMAKE_SOURCE_DIR}/compiler/utils
 )
 
-add_executable(${PROJECT_NAME} ${SRC_FILES})
+# Main Executable (CLI)
+add_executable(${PROJECT_NAME} cli/main.c ${COMPILER_SRC_FILES})
 
 install(TARGETS ${PROJECT_NAME} DESTINATION ${CMAKE_BINARY_DIR})
 
 # Unit Tests
 file(GLOB_RECURSE TEST_FILES "${CMAKE_SOURCE_DIR}/test/*.c")
-list(FILTER SRC_FILES EXCLUDE REGEX ".*compiler.c$")
 
-add_executable(unit_test ${TEST_FILES} ${SRC_FILES})
-target_include_directories(unit_test PRIVATE ${CMAKE_SOURCE_DIR}/src)
+add_executable(unit_test ${TEST_FILES} ${COMPILER_SRC_FILES})
+target_include_directories(unit_test PRIVATE ${CMAKE_SOURCE_DIR}/compiler)
+
 
 install(TARGETS unit_test DESTINATION ${CMAKE_BINARY_DIR})

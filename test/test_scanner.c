@@ -1,86 +1,93 @@
-#include "../src/common.h"
-#include "../src/scanner.h"
+#include "common.h"
+#include "lexer.h"
 #include "framework.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "test_utils.h"
 
-TEST(scanner_basic) {
+void test_scanner_basic(void) {
     create_temp_file("test_basic.lt", "let x = 10");
     read_file("test_basic.lt");
 
     struct token* t = next_token();
-    ASSERT_EQ(TOK_LET, t->type);
+    test_assert_eq(TOK_LET, t->type, __FILE__, __LINE__);
 
     t = next_token();
-    ASSERT_EQ(TOK_ID, t->type);
-    ASSERT_TRUE(strncmp(t->start_pos, "x", (size_t)t->length) == 0);
+    test_assert_eq(TOK_ID, t->type, __FILE__, __LINE__);
+    test_assert_true(strncmp(t->start_pos, "x", (size_t)t->length) == 0,
+                     "strncmp(t->start_pos, \"x\", (size_t)t->length) == 0",
+                     __FILE__, __LINE__);
 
     t = next_token();
-    ASSERT_EQ(TOK_ASSIGN, t->type);
+    test_assert_eq(TOK_ASSIGN, t->type, __FILE__, __LINE__);
 
     t = next_token();
-    ASSERT_EQ(TOK_INT, t->type);
-    ASSERT_TRUE(strncmp(t->start_pos, "10", (size_t)t->length) == 0);
+    test_assert_eq(TOK_INT, t->type, __FILE__, __LINE__);
+    test_assert_true(strncmp(t->start_pos, "10", (size_t)t->length) == 0,
+                     "strncmp(t->start_pos, \"10\", (size_t)t->length) == 0",
+                     __FILE__, __LINE__);
 
     remove("test_basic.lt");
 }
 
-TEST(scanner_keywords) {
+void test_scanner_keywords(void) {
     create_temp_file("test_keywords.lt", "fn if else return");
     read_file("test_keywords.lt");
 
-    ASSERT_EQ(TOK_FN, next_token()->type);
-    ASSERT_EQ(TOK_IF, next_token()->type);
-    ASSERT_EQ(TOK_ELSE, next_token()->type);
-    ASSERT_EQ(TOK_RETURN, next_token()->type);
+    test_assert_eq(TOK_FN, next_token()->type, __FILE__, __LINE__);
+    test_assert_eq(TOK_IF, next_token()->type, __FILE__, __LINE__);
+    test_assert_eq(TOK_ELSE, next_token()->type, __FILE__, __LINE__);
+    test_assert_eq(TOK_RETURN, next_token()->type, __FILE__, __LINE__);
 
     remove("test_keywords.lt");
 }
 
-TEST(scanner_operators) {
+void test_scanner_operators(void) {
     create_temp_file("test_ops.lt", "+ - * / == !=");
     read_file("test_ops.lt");
 
-    ASSERT_EQ('+', next_token()->type);
-    ASSERT_EQ('-', next_token()->type);
-    ASSERT_EQ('*', next_token()->type);
-    ASSERT_EQ('/', next_token()->type);
-    ASSERT_EQ(TOK_EQEQ, next_token()->type);
-    ASSERT_EQ(TOK_NOTEQ, next_token()->type);
+    test_assert_eq('+', next_token()->type, __FILE__, __LINE__);
+    test_assert_eq('-', next_token()->type, __FILE__, __LINE__);
+    test_assert_eq('*', next_token()->type, __FILE__, __LINE__);
+    test_assert_eq('/', next_token()->type, __FILE__, __LINE__);
+    test_assert_eq(TOK_EQEQ, next_token()->type, __FILE__, __LINE__);
+    test_assert_eq(TOK_NOTEQ, next_token()->type, __FILE__, __LINE__);
 
     remove("test_ops.lt");
 }
 
-TEST(scanner_comments) {
+void test_scanner_comments(void) {
     create_temp_file("test_comments.lt",
                      "let x = 1; // This is a comment\nlet y = 2;");
     read_file("test_comments.lt");
 
-    ASSERT_EQ(TOK_LET, next_token()->type);
-    ASSERT_EQ(TOK_ID, next_token()->type);
-    ASSERT_EQ(TOK_ASSIGN, next_token()->type);
-    ASSERT_EQ(TOK_INT, next_token()->type);
-    ASSERT_EQ(';', next_token()->type);
+    test_assert_eq(TOK_LET, next_token()->type, __FILE__, __LINE__);
+    test_assert_eq(TOK_ID, next_token()->type, __FILE__, __LINE__);
+    test_assert_eq(TOK_ASSIGN, next_token()->type, __FILE__, __LINE__);
+    test_assert_eq(TOK_INT, next_token()->type, __FILE__, __LINE__);
+    test_assert_eq(';', next_token()->type, __FILE__, __LINE__);
 
     // Comment should be skipped
-    ASSERT_EQ(TOK_LET, next_token()->type);
-    ASSERT_EQ(TOK_ID, next_token()->type);
-    ASSERT_EQ(TOK_ASSIGN, next_token()->type);
-    ASSERT_EQ(TOK_INT, next_token()->type);
+    test_assert_eq(TOK_LET, next_token()->type, __FILE__, __LINE__);
+    test_assert_eq(TOK_ID, next_token()->type, __FILE__, __LINE__);
+    test_assert_eq(TOK_ASSIGN, next_token()->type, __FILE__, __LINE__);
+    test_assert_eq(TOK_INT, next_token()->type, __FILE__, __LINE__);
 
     remove("test_comments.lt");
 }
 
-TEST(scanner_strings) {
+void test_scanner_strings(void) {
     create_temp_file("test_strings.lt", "let s = \"Hello World\";");
     read_file("test_strings.lt");
 
-    ASSERT_EQ(TOK_LET, next_token()->type);
-    ASSERT_EQ(TOK_ID, next_token()->type);
-    ASSERT_EQ(TOK_ASSIGN, next_token()->type);
+    test_assert_eq(TOK_LET, next_token()->type, __FILE__, __LINE__);
+    test_assert_eq(TOK_ID, next_token()->type, __FILE__, __LINE__);
+    test_assert_eq(TOK_ASSIGN, next_token()->type, __FILE__, __LINE__);
 
     struct token* t = next_token();
-    ASSERT_EQ(TOK_STRING, t->type);
+    test_assert_eq(TOK_STRING, t->type, __FILE__, __LINE__);
 
     remove("test_strings.lt");
 }

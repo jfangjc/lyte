@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "scanner.h"
+#include "lexer.h"
 
 void ht_expand(struct ht* ht);
 

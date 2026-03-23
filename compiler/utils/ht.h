@@ -1,7 +1,7 @@
 #ifndef COMPILER_HT
 #define COMPILER_HT
 
-#include "scanner.h"
+#include "lexer.h"
 
 #define fnv_offset_basis 2166136261
 #define fnv_prime 16777619

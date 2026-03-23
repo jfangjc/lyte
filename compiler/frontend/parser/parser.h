@@ -1,7 +1,15 @@
 #ifndef COMPILER_PARSER
 #define COMPILER_PARSER
 
-#include "scanner.h"
+#include "lexer.h"
+
+struct type {
+    int kind; // 0: primitive, 1: pointer, 2: reference
+    union {
+        int primitive;
+        struct type* base;
+    };
+};
 
 struct program_ast {
     struct let_decl* let_decls;
@@ -12,26 +20,26 @@ struct fn_decl {
     struct token* name;
     struct param* params;
     struct stmt* body;
-    int type;
+    struct type* type;
     struct fn_decl* next;
 };
 
 struct let_decl {
     struct token* name;
-    int type;
+    struct type* type;
     struct expr* value;
     int mut;
 };
 
 struct addr_decl {
     struct token* name;
-    int type;
+    struct type* type;
     struct expr* value;
 };
 
 struct param {
     struct token* name;
-    int type;
+    struct type* type;
     struct param* next;
     int mut;
 };

@@ -1,38 +1,38 @@
-#include "../src/ht.h"
-#include "../src/scanner.h"
+#include "ht.h"
+#include "lexer.h"
 #include "framework.h"
-#include <stdio.h>
-#include <stdlib.h>
+#include <string.h>
 
-TEST(ht_basic) {
+void test_ht_basic(void) {
     struct ht* table = ht_create();
-    ASSERT_TRUE(table != NULL);
-    ASSERT_EQ(0, table->size);
+    test_assert_true(table != NULL, "table != NULL", __FILE__, __LINE__);
+    test_assert_eq(0, (int)table->size, __FILE__, __LINE__);
 
     struct token t1;
     t1.start_pos = "key1";
     t1.length = 4;
 
     ht_insert(table, &t1);
-    ASSERT_EQ(1, table->size);
+    test_assert_eq(1, (int)table->size, __FILE__, __LINE__);
 
     struct token* found = ht_lookup(table, &t1);
-    ASSERT_TRUE(found != NULL);
-    ASSERT_TRUE(found == &t1);
+    test_assert_true(found != NULL, "found != NULL", __FILE__, __LINE__);
+    test_assert_true(found == &t1, "found == &t1", __FILE__, __LINE__);
 
     struct token t2;
     t2.start_pos = "key2";
     t2.length = 4;
 
     struct token* not_found = ht_lookup(table, &t2);
-    ASSERT_TRUE(not_found == NULL);
+    test_assert_true(not_found == NULL, "not_found == NULL", __FILE__,
+                     __LINE__);
 
     ht_free(table);
 }
 
-TEST(ht_expansion) {
+void test_ht_expansion(void) {
     struct ht* table = ht_create();
-    ASSERT_EQ(8, table->capacity);
+    test_assert_eq(8, (int)table->capacity, __FILE__, __LINE__);
 
     // Insert 8 items to trigger expansion (threshold is 0.8 * 8 = 6.4 -> 7
     // items) Actually code says >= capacity * 0.8. 8 * 0.8 = 6.4. So 7th item
@@ -54,19 +54,20 @@ TEST(ht_expansion) {
         ht_insert(table, &tokens[i]);
     }
 
-    ASSERT_TRUE(table->capacity > 8);
-    ASSERT_EQ(10, table->size);
+    test_assert_true(table->capacity > 8, "table->capacity > 8", __FILE__,
+                     __LINE__);
+    test_assert_eq(10, (int)table->size, __FILE__, __LINE__);
 
     for (int i = 0; i < 10; i++) {
         struct token* found = ht_lookup(table, &tokens[i]);
-        ASSERT_TRUE(found != NULL);
-        ASSERT_STR_EQ(keys[i], found->start_pos);
+        test_assert_true(found != NULL, "found != NULL", __FILE__, __LINE__);
+        test_assert_str_eq(keys[i], found->start_pos, __FILE__, __LINE__);
     }
 
     ht_free(table);
 }
 
-TEST(ht_collision) {
+void test_ht_collision(void) {
     struct ht* table = ht_create();
 
     // Force collision if possible, or just rely on FNV properties with enough
@@ -82,10 +83,13 @@ TEST(ht_collision) {
     ht_insert(table, &t2);
     ht_insert(table, &t3);
 
-    ASSERT_EQ(3, table->size);
-    ASSERT_TRUE(ht_lookup(table, &t1) == &t1);
-    ASSERT_TRUE(ht_lookup(table, &t2) == &t2);
-    ASSERT_TRUE(ht_lookup(table, &t3) == &t3);
+    test_assert_eq(3, (int)table->size, __FILE__, __LINE__);
+    test_assert_true(ht_lookup(table, &t1) == &t1,
+                     "ht_lookup(table, &t1) == &t1", __FILE__, __LINE__);
+    test_assert_true(ht_lookup(table, &t2) == &t2,
+                     "ht_lookup(table, &t2) == &t2", __FILE__, __LINE__);
+    test_assert_true(ht_lookup(table, &t3) == &t3,
+                     "ht_lookup(table, &t3) == &t3", __FILE__, __LINE__);
 
     ht_free(table);
 }

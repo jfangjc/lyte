@@ -5,7 +5,7 @@
 
 #include "common.h"
 #include "error.h"
-#include "scanner.h"
+#include "lexer.h"
 
 struct token* curr_token;
 
@@ -16,7 +16,7 @@ struct addr_decl* parse_addr_decl(void);
 struct param* parse_param_list(void);
 struct expr* parse_initialiser(void);
 
-int parse_type(void);
+struct type* parse_type(void);
 
 struct token* parse_id(void);
 
@@ -61,7 +61,8 @@ void expect(int type) {
         return;
     }
     char error_str[256];
-    snprintf(error_str, 256, "\n ERROR: expect %c, get %c \n", type, curr_token->start_pos[0]);
+    snprintf(error_str, 256, "\n ERROR: expect %c, get %c \n", type,
+             curr_token->start_pos[0]);
     error(error_str);
     return;
 }
@@ -119,7 +120,7 @@ struct let_decl* parse_let_decl(void) {
         var->type = parse_type();
     }
     else {
-        var->type = 0; // 0 for auto/unknown type, or handle accordingly
+        var->type = NULL; // NULL for auto/unknown type
     }
 
     var->value = parse_initialiser();
@@ -198,12 +199,29 @@ struct expr* parse_initialiser(void) {
     return NULL;
 }
 
-int parse_type(void) {
+struct type* parse_type(void) {
+    if (match('*')) {
+        next();
+        struct type* type = malloc(sizeof(struct type));
+        type->kind = 1; // pointer
+        type->base = parse_type();
+        return type;
+    }
+    if (match('&')) {
+        next();
+        struct type* type = malloc(sizeof(struct type));
+        type->kind = 2; // reference
+        type->base = parse_type();
+        return type;
+    }
+
     if (curr_token->type < TOK_S8 || curr_token->type > TOK_F128) {
         printf("< %i >", curr_token->type);
         error("Unrecognised type");
     }
-    int type = curr_token->type;
+    struct type* type = malloc(sizeof(struct type));
+    type->kind = 0; // primitive
+    type->primitive = curr_token->type;
     next();
     return type;
 }
@@ -368,7 +386,6 @@ struct expr_stmt* parse_expr_stmt(void) {
     return expr_stmt;
 }
 
-
 // Start with the lowest precedence
 struct expr* parse_expr(void) { return parse_assignment(); }
 
@@ -489,7 +506,7 @@ struct expr* parse_factor(void) {
 }
 
 struct expr* parse_unary(void) {
-    if (match('!') || match('-')) {
+    if (match('!') || match('-') || match('*') || match('&')) {
         struct expr* expr = malloc(sizeof(struct expr));
         expr->type = EXPR_UNARY;
         expr->exprs.unary_expr = malloc(sizeof(struct unary_expr));

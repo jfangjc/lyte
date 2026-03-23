@@ -15,8 +15,6 @@
  ssize  | ssize_t      | signed pointer sized integer
  usize  | size_t       | unsigned pointer sized integer
 
-TODO: Add BNF Here
-
 # Sequence types
 
 # User-defined types

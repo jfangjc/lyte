@@ -1,4 +1,4 @@
-#include "scanner.h"
+#include "lexer.h"
 #include "common.h"
 
 #include <stdio.h>
@@ -161,25 +161,17 @@ struct token* next_token(void) {
                 while (*curr != '\n' && *curr != '\0') {
                     curr++;
                 }
-                // Don't return a token, loop again
-                // But next_token structure is a big while loop.
-                // We need to continue the outer loop.
-                // However, we already called produce_token and allocated
-                // 'token'. If we loop again, we need to reset 'token'.
-                // Actually, the loop is `while (*curr != '\0')`.
-                // If we hit a comment, we consume it.
-                // Then we need to restart finding the next token.
-                // But we already did `produce_token` which sets start_pos.
-                // If we just continue, the next iteration will call
-                // `produce_token` again? No, `produce_token` is called inside
-                // each if/else block. So if we are here, we consumed `/`. If it
-                // is a comment, we consume until newline. Then we are at
-                // newline or EOF. If we just `continue` the while loop, it will
-                // handle newline or whatever next. But we need to NOT return
-                // the token we started producing. So we should NOT return
-                // So we should NOT return `token` here.
                 token->length = 0;
                 continue;
+            }
+            return token;
+        }
+        else if (*curr == '&') {
+            produce_token(token, curr, *curr);
+            advance();
+            if (*curr == '&') {
+                advance();
+                token->type = TOK_AND;
             }
             return token;
         }

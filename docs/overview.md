@@ -1,50 +1,32 @@
 # Lyte Project Overview
-Lyte is a toy compiler written in C.
 
-## Project Structure
-lyte/
-├── cli/                  # 1. The Driver
-│   └── main              # Orchestrates the build process and parses flags
-│
-├── compiler/             # 2. The Core API (Designed as a library)
-│   ├── vfs/              # Virtual File System (Crucial for Fragments)
-│   │   └── workspace     # Loads collections, tracks parent-fragment relationships
-│   │
-│   ├── frontend/         # Phase A: Parsing the Minimalist Syntax
-│   │   ├── lexer/        # Tokenizer (handles the EBNF keywords)
-│   │   ├── parser/       # Transforms tokens into the AST
-│   │   └── ast/          # Abstract Syntax Tree nodes (very small due to no for-loops/try-catch)
-│   │
-│   ├── middle/           # Phase B: The Enforcer (Lyte's heaviest phase)
-│   │   ├── resolver/     # 1. Graph checking (Enforces the acyclic dependency rule)
-│   │   ├── linker/       # 2. Merges `fragment` ASTs into their parent file's AST
-│   │   ├── scope/        # 3. Validates Tier 1/2 boundaries (ensures `struct` stays private)
-│   │   └── types/        # 4. Type Checker (Validates raw pointers, interface contracts)
-│   │
-│   └── backend/          # Phase C: AOT Code Generation
-│       ├── ir/           # Lowers Lyte AST to an Intermediate Representation
-│       ├── vtable/       # Dynamically generates the VTables for Interface Fat Pointers
-│       └── codegen/      # Emits the final LLVM IR or C code
-│
-├── lsp/                  # 3. Language Server (For IDE support)
-│   └── server            # Hooks into `compiler/` for strict boundary autocomplete
-│
-├── std/                  # 4. Lyte's Standard Library
-│   ├── core/             # Fundamental memory types, pointers, and string layouts
-│   └── collections/      # E.g., `collection Std;`
-│
-├── tools/                # 5. Tooling
-│   └── formatter/        # Code formatter (Lytefmt)
-│
-└── tests/                # 6. Test Suite
-    ├── ui/               # Tests compiler errors (e.g., circular import errors)
-    └── codegen/          # Validates that Fat Pointers and memory layout compile correctly
+Lyte is an AOT-compiled systems programming language. The compiler is written in C and follows a standard multi-phase pipeline.
 
-## Design
-The compiler follows a standard pipeline:
-1. **Scanner**: Converts source code into tokens.
-2. **Parser**: Converts tokens into an AST.
-3. **Code Generator**: Traverses the AST and generates LLVM IR.
+## Compiler Pipeline
+
+```
+Source (.lyt) → Lexer → Parser → AST → [Resolver → Linker → Scope → Types] → Codegen → LLVM IR
+                         ▲                              ▲                          ▲
+                     frontend/                       middle/                   backend/
+```
+
+1. **Lexer** (`compiler/frontend/lexer/`) — Tokenises source files into the keyword set defined by the language spec. Comments use `#`.
+2. **Parser** (`compiler/frontend/parser/`) — Recursive descent parser producing the AST. Handles `entry` declarations, `fn` declarations, and the minimalist grammar (no `for`, no `try/catch`).
+3. **AST** (`compiler/frontend/ast/`) — AST node definitions and tree utilities.
+4. **Resolver** (`compiler/middle/resolver/`) — *(Planned)* Validates the acyclic dependency graph.
+5. **Linker** (`compiler/middle/linker/`) — *(Planned)* Merges `attach`ed file ASTs into their parent file's AST.
+6. **Scope** (`compiler/middle/scope/`) — *(Planned)* Enforces Tier 1/2 boundaries (`struct` and `fn` stay private).
+7. **Types** (`compiler/middle/types/`) — *(Planned)* Type checking, interface contract validation, and fat pointer generation.
+8. **Codegen** (`compiler/backend/codegen/`) — Emits LLVM IR by walking the AST.
+
+## Shared Components
+- **`compiler/common.h`** — Token enum shared across all compiler phases.
+- **`compiler/utils/`** — Hash table (`ht.c`) and error reporting (`error.c`).
+- **`compiler/vfs/`** — *(Planned)* Virtual file system for `collection` and `attach` support.
 
 ## Testing
-The project uses a custom unit test framework defined in `test/framework.h` and `test/framework.c`. Tests are automatically registered using constructor attributes.
+The project uses a custom unit test framework (`test/framework.h`). Tests are registered in `test/main.c` and cover the lexer, parser, AST, hash table, and pointer parsing.
+
+```bash
+cd build && cmake .. && make && ./unit_test
+```

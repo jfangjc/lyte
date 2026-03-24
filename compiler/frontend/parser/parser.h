@@ -14,6 +14,7 @@ struct type {
 struct program_ast {
     struct let_decl* let_decls;
     struct fn_decl* fn_decls;
+    struct entry_decl* entry;
 };
 
 struct fn_decl {
@@ -24,14 +25,12 @@ struct fn_decl {
     struct fn_decl* next;
 };
 
-struct let_decl {
+struct entry_decl {
     struct token* name;
-    struct type* type;
-    struct expr* value;
-    int mut;
+    struct stmt* body;
 };
 
-struct addr_decl {
+struct let_decl {
     struct token* name;
     struct type* type;
     struct expr* value;
@@ -41,14 +40,11 @@ struct param {
     struct token* name;
     struct type* type;
     struct param* next;
-    int mut;
 };
 
 union stmts {
     struct let_decl* let_decl;
-    struct addr_decl* addr_decl;
     struct if_stmt* if_stmt;
-    struct for_stmt* for_stmt;
     struct break_stmt* break_stmt;
     struct continue_stmt* continue_stmt;
     struct return_stmt* return_stmt;
@@ -57,9 +53,7 @@ union stmts {
 
 enum StmtType {
     STMT_LET,
-    STMT_ADDR,
     STMT_IF,
-    STMT_FOR,
     STMT_BREAK,
     STMT_CONTINUE,
     STMT_RETURN,
@@ -83,11 +77,6 @@ struct elseif_stmt {
     struct expr* cond;
     struct stmt* body;
     struct elseif_stmt* next;
-};
-
-struct for_stmt {
-    struct expr* cond;
-    struct stmt* body;
 };
 
 struct break_stmt {

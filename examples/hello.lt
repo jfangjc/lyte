@@ -1,0 +1,5 @@
+# Hello World
+# The simplest Lyte program — uses the entry keyword.
+
+entry main {
+}

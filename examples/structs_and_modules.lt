@@ -1,0 +1,33 @@
+# Structs and Modules
+# Demonstrates the 3-Tier Architecture: struct (Tier 1), module (Tier 2), interface (Tier 3).
+
+# Tier 1 — Private internals (structs and helper fns are file-private)
+struct Vec2 {
+    x: f32,
+    y: f32,
+}
+
+fn vec2_length_squared(v: *Vec2): f32 {
+    return v.x * v.x + v.y * v.y;
+}
+
+# Tier 3 — The abstract blueprint
+export interface Shape {
+    area(): f32;
+    perimeter(): f32;
+}
+
+# Tier 2 — The exposed component
+export module Circle implements Shape {
+    static fn new(cx: f32, cy: f32, r: f32): Circle {
+        # Factory function — the only way to instantiate from outside
+    }
+
+    fn area(): f32 {
+        return 3.14159 * r * r;
+    }
+
+    fn perimeter(): f32 {
+        return 2.0 * 3.14159 * r;
+    }
+}

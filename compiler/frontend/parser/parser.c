@@ -10,8 +10,8 @@
 struct token* curr_token;
 
 struct fn_decl* parse_fn_decl(void);
+struct entry_decl* parse_entry_decl(void);
 struct let_decl* parse_let_decl(void);
-struct addr_decl* parse_addr_decl(void);
 
 struct param* parse_param_list(void);
 struct expr* parse_initialiser(void);
@@ -24,7 +24,6 @@ struct stmt* parse_compound_stmt(void);
 struct stmt* parse_stmt(void);
 
 struct if_stmt* parse_if_stmt(void);
-struct for_stmt* parse_for_stmt(void);
 struct break_stmt* parse_break_stmt(void);
 struct continue_stmt* parse_continue_stmt(void);
 struct return_stmt* parse_return_stmt(void);
@@ -72,11 +71,17 @@ int match(int type) { return curr_token->type == type; }
 struct program_ast* parse_program(void) {
     struct program_ast* program = malloc(sizeof(struct program_ast));
     struct fn_decl** fn = &(program->fn_decls);
+    program->entry = NULL;
     curr_token = next_token();
 
     while (curr_token != NULL) {
-        (*fn) = parse_fn_decl();
-        fn = &((*fn)->next);
+        if (match(TOK_ENTRY)) {
+            program->entry = parse_entry_decl();
+        }
+        else {
+            (*fn) = parse_fn_decl();
+            fn = &((*fn)->next);
+        }
     }
     (*fn) = NULL;
     return program;
@@ -100,18 +105,21 @@ struct fn_decl* parse_fn_decl(void) {
     return fn;
 }
 
+struct entry_decl* parse_entry_decl(void) {
+    expect(TOK_ENTRY);
+
+    struct entry_decl* entry = malloc(sizeof(struct entry_decl));
+
+    entry->name = parse_id();
+    entry->body = parse_compound_stmt();
+
+    return entry;
+}
+
 struct let_decl* parse_let_decl(void) {
     struct let_decl* var = malloc(sizeof(struct let_decl));
 
     expect(TOK_LET);
-
-    if (match(TOK_MUT)) {
-        var->mut = 1;
-        next();
-    }
-    else {
-        var->mut = 0;
-    }
 
     var->name = parse_id();
 
@@ -129,23 +137,6 @@ struct let_decl* parse_let_decl(void) {
     return var;
 }
 
-struct addr_decl* parse_addr_decl(void) {
-    struct addr_decl* addr = malloc(sizeof(struct addr_decl));
-
-    expect(TOK_ADDR);
-
-    addr->name = parse_id();
-
-    expect(':');
-
-    addr->type = parse_type();
-
-    addr->value = parse_initialiser();
-
-    expect(';');
-    return addr;
-}
-
 struct param* parse_param_list(void) {
     expect('(');
 
@@ -155,13 +146,6 @@ struct param* parse_param_list(void) {
 
         param->name = parse_id();
         expect(':');
-        if (match(TOK_MUT)) {
-            param->mut = 1;
-            next();
-        }
-        else {
-            param->mut = 0;
-        }
         param->type = parse_type();
 
         while (match(',')) {
@@ -171,13 +155,6 @@ struct param* parse_param_list(void) {
 
             param->name = parse_id();
             expect(':');
-            if (match(TOK_MUT)) {
-                param->mut = 1;
-                next();
-            }
-            else {
-                param->mut = 0;
-            }
             param->type = parse_type();
         }
         param->next = NULL;
@@ -215,7 +192,8 @@ struct type* parse_type(void) {
         return type;
     }
 
-    if (curr_token->type < TOK_S8 || curr_token->type > TOK_F128) {
+    // Primitive limits checking up to TOK_F64
+    if (curr_token->type < TOK_S8 || curr_token->type > TOK_STATIC) {
         printf("< %i >", curr_token->type);
         error("Unrecognised type");
     }
@@ -262,18 +240,12 @@ struct stmt* parse_stmt(void) {
         stmt->type = STMT_LET;
         stmt->stmt.let_decl = parse_let_decl();
         break;
-    case TOK_ADDR:
-        stmt->type = STMT_ADDR;
-        stmt->stmt.addr_decl = parse_addr_decl();
-        break;
+
     case TOK_IF:
         stmt->type = STMT_IF;
         stmt->stmt.if_stmt = parse_if_stmt();
         break;
-    case TOK_FOR:
-        stmt->type = STMT_FOR;
-        stmt->stmt.for_stmt = parse_for_stmt();
-        break;
+
     case TOK_BREAK:
         stmt->type = STMT_BREAK;
         stmt->stmt.break_stmt = parse_break_stmt();
@@ -336,21 +308,6 @@ struct if_stmt* parse_if_stmt(void) {
 
     if_stmt->elseif_stmt = head;
     return if_stmt;
-}
-
-struct for_stmt* parse_for_stmt(void) {
-    struct for_stmt* for_stmt = malloc(sizeof(struct for_stmt));
-
-    expect(TOK_FOR);
-    expect('(');
-
-    for_stmt->cond = parse_expr();
-
-    expect(')');
-
-    for_stmt->body = parse_compound_stmt();
-
-    return for_stmt;
 }
 
 struct break_stmt* parse_break_stmt(void) {

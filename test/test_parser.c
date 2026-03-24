@@ -54,3 +54,24 @@ void test_parser_var_decl(void) {
 
     remove("test_var.lt");
 }
+
+void test_parser_entry_decl(void) {
+    create_temp_file("test_entry.lt", "entry main { let x: s32 = 42; }");
+    read_file("test_entry.lt");
+
+    struct program_ast* prog = parse_program();
+    test_assert_true(prog != NULL, "prog != NULL", __FILE__, __LINE__);
+    test_assert_true(prog->entry != NULL, "prog->entry != NULL", __FILE__,
+                     __LINE__);
+
+    struct entry_decl* entry = prog->entry;
+    test_assert_true(entry->name != NULL, "entry->name != NULL", __FILE__,
+                     __LINE__);
+    test_assert_true(strncmp(entry->name->start_pos, "main", 4) == 0,
+                     "strncmp(entry->name->start_pos, \"main\", 4) == 0",
+                     __FILE__, __LINE__);
+    test_assert_true(entry->body != NULL, "entry->body != NULL", __FILE__,
+                     __LINE__);
+
+    remove("test_entry.lt");
+}

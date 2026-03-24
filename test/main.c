@@ -8,6 +8,7 @@ void test_ht_expansion(void);
 void test_ht_collision(void);
 void test_parser_fn_decl(void);
 void test_parser_var_decl(void);
+void test_parser_entry_decl(void);
 void test_scanner_basic(void);
 void test_scanner_keywords(void);
 void test_scanner_operators(void);
@@ -22,6 +23,7 @@ int main(void) {
     register_test("ht_collision", test_ht_collision);
     register_test("parser_fn_decl", test_parser_fn_decl);
     register_test("parser_var_decl", test_parser_var_decl);
+    register_test("parser_entry_decl", test_parser_entry_decl);
     register_test("scanner_basic", test_scanner_basic);
     register_test("scanner_keywords", test_scanner_keywords);
     register_test("scanner_operators", test_scanner_operators);

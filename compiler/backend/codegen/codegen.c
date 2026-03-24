@@ -88,18 +88,11 @@ static void map_type_str(struct type* type, char* buffer) {
     case TOK_U64:
         strcpy(buffer, "i64");
         break;
-    case TOK_S128:
-    case TOK_U128:
-        strcpy(buffer, "i128");
-        break;
     case TOK_F32:
         strcpy(buffer, "float");
         break;
     case TOK_F64:
         strcpy(buffer, "double");
-        break;
-    case TOK_F128:
-        strcpy(buffer, "fp128");
         break;
     default:
         strcpy(buffer, "i32");
@@ -520,6 +513,26 @@ void gen_fn(struct fn_decl* fn) {
     emit("}\n\n");
 }
 
+void gen_entry(struct entry_decl* entry) {
+    tmp_count = 0;
+    label_count = 0;
+    free_symbols();
+
+    emit("define i32 @");
+
+    char name[128];
+    snprintf(name, (size_t)entry->name->length + 1, "%s", entry->name->start_pos);
+    emit(name);
+
+    emit("() {\n");
+    emit("entry:\n");
+
+    gen_compound_stmt(entry->body);
+
+    emit("  ret i32 0\n");
+    emit("}\n\n");
+}
+
 void gen(char* bin_name, struct program_ast* program) {
     emitter(bin_name);
 
@@ -527,6 +540,10 @@ void gen(char* bin_name, struct program_ast* program) {
     while (fn != NULL) {
         gen_fn(fn);
         fn = fn->next;
+    }
+
+    if (program->entry != NULL) {
+        gen_entry(program->entry);
     }
 
     emit_finish();

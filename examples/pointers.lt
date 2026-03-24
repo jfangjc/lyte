@@ -1,0 +1,21 @@
+# Pointers
+# Demonstrates raw pointer usage: address-of (&), dereference (*), and pointer types.
+
+fn swap(a: *s32, b: *s32): void {
+    let temp: s32 = *a;
+    *a = *b;
+    *b = temp;
+}
+
+entry main {
+    let x: s32 = 10;
+    let y: s32 = 20;
+
+    # Take addresses and pass as pointers
+    let px: *s32 = &x;
+    let py: *s32 = &y;
+
+    swap(px, py);
+
+    # x is now 20, y is now 10
+}

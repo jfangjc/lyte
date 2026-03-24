@@ -3,6 +3,8 @@
 ## 1. Abstract
 Lyte is a statically typed, ahead-of-time (AOT) compiled systems programming language. It is designed to provide the absolute, uncompromised hardware control of C, paired with a strictly enforced modular architecture. Lyte utilizes a unique 3-Tier Architecture (`fn` / `module` / `interface`) to enforce Dependency Inversion and strictly prohibit state-bleeding across file boundaries, while leaving memory management and error handling entirely in the hands of the developer.
 
+Every Lyte program begins with an `entry` declaration that defines the program's entry point.
+
 ## 2. Core Paradigms & OOP Integration
 Lyte implements **Data-Oriented, Composition-First OOP** without the overhead or fragility of traditional class hierarchies.
 - **No Classes:** State and behavior are strictly decoupled.
@@ -11,7 +13,7 @@ Lyte implements **Data-Oriented, Composition-First OOP** without the overhead or
 - **Explicit Control:** There is no garbage collector and no implicit borrow checker. Developers have total authority over the memory lifecycle.
 
 ## 3. Type System & Memory Model
-Lyte expects the developer to manage memory allocations and lifetimes explicitly. 
+Lyte expects the developer to manage memory allocations and lifetimes explicitly.
 
 ### 3.1 Primitive Types
 - **Integers:** `s8`, `s16`, `s32`, `s64`, `u8`, `u16`, `u32`, `u64`, `ssize`, `usize`
@@ -48,6 +50,15 @@ Every Lyte file enforces a strict separation of concerns to guarantee true modul
 - Interfaces declare function signatures without implementation logic.
 - They act as the primary, safe cross-boundary communication type between isolated files.
 
+### Program Entry Point (`entry`)
+Every Lyte program must define exactly one entry point using the `entry` keyword. Unlike regular functions, entry declarations take no parameters and have no return type — they simply name the program's starting block.
+```
+entry main {
+    # program starts here
+}
+```
+The identifier (e.g. `main`, `_start`) is passed through to the linker, allowing the developer to control the symbol name of the program's entry point.
+
 ## 5. Modularity & The File System
 Lyte utilizes a flat, acyclic dependency graph, entirely eliminating the need for C-style header files or complex namespace nesting.
 
@@ -62,33 +73,37 @@ To prevent monolithic file bloat without compromising Tier 1 encapsulation, Lyte
 - **The Parent File:** Declares `attach "filename.lyt";`. This instructs the compiler to mechanically merge the target file directly into the parent's Tier 1 private scope.
 - **The Attached File:** Must explicitly declare its structural owner at the top of the file using `parent "parent_file.lyt";`.
 - **Visibility & Constraints:** Attached files share the exact same private scope (private `fn` and `struct` declarations) as their parent file. Because they are strictly an extension of the parent's AST, attached files are entirely invisible to the rest of the compilation unit and **cannot** be targeted by an `import` statement.
-    
+
 ## 6. Control Flow & Error Handling
-Lyte values a minimalist, highly predictable Abstract Syntax Tree (AST). 
+Lyte values a minimalist, highly predictable Abstract Syntax Tree (AST).
 
 ### 6.1 Looping
-To reduce compiler complexity and enforce standard coding patterns, Lyte features exactly one loop construct: the `while` loop. Constructs such as `for`, `do-while`, and `loop` do not exist in the language grammar.
+To reduce compiler complexity and enforce standard coding patterns, Lyte features only one loop construct: the `while` loop. The execution of the loop can be controlled using `break` and `continue` statements. Constructs such as `for`, `do-while`, and `loop` do not exist in the language grammar.
 
 ### 6.2 Error Handling
 Lyte does not possess built-in exception handling (`try/catch`) or compiler-enforced error types (`Result<T, E>`). Error handling is entirely user-defined.
 
+### 6.3 Comments
+Lyte uses `#` as the only comment syntax. A `#` character begins a single-line comment that extends to the end of the line. There are no multi-line or block comment constructs.
+
 ## 7. Formal Syntax Grammar (EBNF)
 
 ```ebnf
-<Program>          ::= <CollectionDecl>? <ParentDecl>? <ImportDecl>* <AttachDecl>* <Statement>*
+<Program>          ::= <CollectionDecl>? <ParentDecl>? <ImportDecl>* <AttachDecl>* <EntryDecl>? <Statement>*
 
 <CollectionDecl>   ::= "collection" <Identifier> ";"
 <ParentDecl>       ::= "parent" <StringLiteral> ";"
 <AttachDecl>       ::= "attach" <StringLiteral> ";"
 <ImportDecl>       ::= "import" "{" <IdentifierList> "}" "from" <StringLiteral> ";"
+<EntryDecl>        ::= "entry" <Identifier> <Block>
 
-<Statement>        ::= <VarDecl> | <StructDecl> | <InterfaceDecl> | <ModuleDecl> | <PrivateFnDecl> 
-                     | <WhileLoop> | <IfStatement> | <ReturnStmt> | <ExpressionStmt>
+<Statement>        ::= <VarDecl> | <StructDecl> | <InterfaceDecl> | <ModuleDecl> | <PrivateFnDecl>
+                     | <WhileLoop> | <IfStatement> | <ReturnStmt> | <BreakStmt> | <ContinueStmt> | <ExpressionStmt>
 
 <VarDecl>          ::= ("let" | "const") <Identifier> ":" <Type> ("=" <Expression>)? ";"
 
 /* Memory & Pointers */
-<Type>             ::= "i8" | "i16" | "i32" | "i64" | "u8" | "u16" | "u32" | "u64" 
+<Type>             ::= "i8" | "i16" | "i32" | "i64" | "u8" | "u16" | "u32" | "u64"
                      | "f32" | "f64" | "bool" | "string" | "void" | <Identifier> | "*" <Type>
 <Expression>       ::= <AddressOfExpr> | <DerefExpr> | <BinaryExpr> | <FunctionCall> | <Literal> | <Identifier>
 <AddressOfExpr>    ::= "&" <Identifier>
@@ -98,6 +113,8 @@ Lyte does not possess built-in exception handling (`try/catch`) or compiler-enfo
 <WhileLoop>        ::= "while" "(" <Expression> ")" <Block>
 <IfStatement>      ::= "if" "(" <Expression> ")" <Block> ("else" <Block>)?
 <ReturnStmt>       ::= "return" <Expression>? ";"
+<BreakStmt>        ::= "break" ";"
+<ContinueStmt>     ::= "continue" ";"
 
 <StructDecl>       ::= "struct" <Identifier> "{" <StructFields> "}"
 <StructFields>     ::= (<Identifier> ":" <Type> ",")+ | <Empty>

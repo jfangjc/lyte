@@ -1,36 +1,10 @@
-# Imports and Collections
-# Demonstrates the modularity system: collections, imports, and scope attachments.
+# Imports
+module app.main
 
-collection MyApp;
+import platform.io as io
+import platform.fs as fs
 
-import { Logger } from "logger.lt";
-import { Database } from "db.lt";
-
-attach "helpers.lt";
-
-# Private helper (Tier 1 — file-private)
-fn validate_input(data: *u8, len: usize): bool {
-    let i: usize = 0;
-    while (i < len) {
-        if (data == 0) {
-            return false;
-        }
-        i += 1;
-    }
-    return true;
-}
-
-# Public module (Tier 2)
-export module App implements Runnable {
-    static fn create(): App {
-        # Factory
-    }
-
-    fn run(): s32 {
-        return 0;
-    }
-}
-
-entry _start {
-    # Program entry point
+fn main(): s32 {
+    io.print("starting");
+    return 0;
 }

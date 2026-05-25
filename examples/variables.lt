@@ -1,20 +1,21 @@
 # Variables and Arithmetic
-# Demonstrates let/const declarations, type annotations, and basic math.
+module app.variables
 
-entry main {
-    let x: s32 = 10;
-    let y: s32 = 20;
-    let sum: s32 = x + y;
-    let diff: s32 = x - y;
-    let product: s32 = x * y;
-    let quotient: s32 = y / x;
+fn main(): s32 {
+    var x: s32 = 10;
+    var y: s32 = 20;
+    var sum: s32 = x + y;
+    var diff: s32 = x - y;
+    var product: s32 = x * y;
+    var quotient: s32 = y / x;
 
-    const max_size: u64 = 1024;
+    const maxSize: u64 = 1024;
 
-    # Compound assignment operators
-    let counter: s32 = 0;
+    var counter: s32 = 0;
     counter += 1;
     counter *= 3;
     counter -= 1;
     counter /= 2;
+
+    return 0;
 }

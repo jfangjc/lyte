@@ -1,20 +1,24 @@
 #ifndef COMPILER_PARSER
 #define COMPILER_PARSER
 
+
 #include "lexer.h"
 
 struct type {
-    int kind; // 0: primitive, 1: pointer, 2: reference
+    int kind; // 0: named, 1: pointer, 2: reference
     union {
-        int primitive;
+        struct token* name;
         struct type* base;
     };
 };
 
 struct program_ast {
-    struct let_decl* let_decls;
+    struct token* module_name;
+    struct import_decl* imports;
+    struct export_decl* exports;
+    struct type_decl* type_decls;
+    struct var_decl* var_decls;
     struct fn_decl* fn_decls;
-    struct entry_decl* entry;
 };
 
 struct fn_decl {
@@ -25,15 +29,29 @@ struct fn_decl {
     struct fn_decl* next;
 };
 
-struct entry_decl {
-    struct token* name;
-    struct stmt* body;
-};
-
-struct let_decl {
+struct var_decl {
     struct token* name;
     struct type* type;
     struct expr* value;
+    int is_const;
+    struct var_decl* next;
+};
+
+struct import_decl {
+    struct token* module_name;
+    struct token* alias;
+    struct import_decl* next;
+};
+
+struct export_decl {
+    struct token* name;
+    struct export_decl* next;
+};
+
+struct type_decl {
+    struct token* name;
+    struct type* alias;
+    struct type_decl* next;
 };
 
 struct param {
@@ -43,17 +61,19 @@ struct param {
 };
 
 union stmts {
-    struct let_decl* let_decl;
+    struct var_decl* var_decl;
     struct if_stmt* if_stmt;
-    struct break_stmt* break_stmt;
-    struct continue_stmt* continue_stmt;
+    struct for_stmt* for_stmt;
+    struct unsafe_stmt* unsafe_stmt;
     struct return_stmt* return_stmt;
     struct expr_stmt* expr_stmt;
 };
 
 enum StmtType {
-    STMT_LET,
+    STMT_VAR,
     STMT_IF,
+    STMT_FOR,
+    STMT_UNSAFE,
     STMT_BREAK,
     STMT_CONTINUE,
     STMT_RETURN,
@@ -79,12 +99,15 @@ struct elseif_stmt {
     struct elseif_stmt* next;
 };
 
-struct break_stmt {
-    struct stmt* stmt;
+struct for_stmt {
+    struct stmt* init;
+    struct expr* cond;
+    struct expr* step;
+    struct stmt* body;
 };
 
-struct continue_stmt {
-    struct stmt* stmt;
+struct unsafe_stmt {
+    struct stmt* body;
 };
 
 struct return_stmt {

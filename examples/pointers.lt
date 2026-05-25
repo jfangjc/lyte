@@ -1,21 +1,17 @@
 # Pointers
-# Demonstrates raw pointer usage: address-of (&), dereference (*), and pointer types.
+module app.pointers
 
-fn swap(a: *s32, b: *s32): void {
-    let temp: s32 = *a;
-    *a = *b;
-    *b = temp;
+unsafe fn copyValue(src: *s32, dst: s32): s32 {
+    dst = *src;
+    return 0;
 }
 
-entry main {
-    let x: s32 = 10;
-    let y: s32 = 20;
+unsafe fn main(): s32 {
+    var x: s32 = 10;
+    var y: s32 = 0;
+    var px: *s32 = &x;
 
-    # Take addresses and pass as pointers
-    let px: *s32 = &x;
-    let py: *s32 = &y;
+    copyValue(px, y);
 
-    swap(px, py);
-
-    # x is now 20, y is now 10
+    return y;
 }

@@ -6,9 +6,15 @@ enum TOKENS {
     TOK_EOF = 256,
 
     // keywords
-    TOK_LET,
+    TOK_MODULE,
+    TOK_EXPORT,
+    TOK_IMPORT,
+    TOK_TYPE,
     TOK_FN,
-    TOK_ENTRY,
+    TOK_CONST,
+    TOK_VAR,
+    TOK_UNSAFE,
+    TOK_FOR,
 
     // conditional
     TOK_IF,
@@ -21,18 +27,6 @@ enum TOKENS {
 
     // identifier
     TOK_ID,
-
-    // types
-    TOK_S8,
-    TOK_S16,
-    TOK_S32,
-    TOK_S64,
-    TOK_U8,
-    TOK_U16,
-    TOK_U32,
-    TOK_U64,
-    TOK_F32,
-    TOK_F64,
 
     // assign
     TOK_ASSIGN,
@@ -56,28 +50,7 @@ enum TOKENS {
     TOK_INT,
     TOK_FLOAT,
     TOK_CHAR,
-    TOK_STRING,
-
-    // language keywords
-    TOK_IMPORT,
-    TOK_EXPORT,
-    TOK_COLLECTION,
-    TOK_PARENT,
-    TOK_ATTACH,
-    TOK_FROM,
-    TOK_CONST,
-    TOK_SSIZE,
-    TOK_USIZE,
-    TOK_BOOL,
-    TOK_STRING_TYPE,
-    TOK_VOID,
-    TOK_WHILE,
-    TOK_STRUCT,
-    TOK_INTERFACE,
-    TOK_EXTENDS,
-    TOK_MODULE,
-    TOK_IMPLEMENTS,
-    TOK_STATIC
+    TOK_STRING
 };
 
 #endif

@@ -1,5 +1,6 @@
 # Hello World
-# The simplest Lyte program — uses the entry keyword.
+module app.main
 
-entry main {
+fn main(): s32 {
+    return 0;
 }

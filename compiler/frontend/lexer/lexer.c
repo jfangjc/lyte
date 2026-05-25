@@ -1,47 +1,139 @@
 #include "lexer.h"
+#include "keywords.h"
 #include "common.h"
+#include "error.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "error.h"
+static struct lexer g_lexer;
 
-static void produce_token(struct token* tok, char* start_pos, int type);
-static int token_cmp(struct token* tok, char* target, int target_length);
-static int generate_type(struct token* tok);
+static int is_alpha(int c) {
+    return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+}
 
-static int is_alpha(int character);
-static int is_num(int character);
+static int is_num(int c) {
+    return (c >= '0' && c <= '9');
+}
 
-static int line_num = 1;
-static int col_num = 1;
-
-static char* curr;
-
-struct token* token;
-
-static void advance(void) {
-    col_num += 1;
-    curr += 1;
+static void advance(struct lexer* lexer, struct token* token) {
+    lexer->col_num += 1;
+    lexer->curr += 1;
     token->length += 1;
 }
 
+static void produce_token(struct lexer* lexer, struct token* token,
+                          char* start_pos, int type) {
+    token->start_pos = start_pos;
+    token->type = type;
+    token->line_num = lexer->line_num;
+}
+
+static struct token* lex_identifier(struct lexer* lexer, struct token* token) {
+    produce_token(lexer, token, lexer->curr, TOK_ID);
+    while (is_alpha(*lexer->curr) || is_num(*lexer->curr) || *lexer->curr == '_') {
+        advance(lexer, token);
+    }
+    token->type = keyword_lookup(token->start_pos, token->length);
+    return token;
+}
+
+static struct token* lex_number(struct lexer* lexer, struct token* token) {
+    produce_token(lexer, token, lexer->curr, TOK_INT);
+    int decimal_count = 0;
+
+    while (is_num(*lexer->curr) || *lexer->curr == '.') {
+        if (*lexer->curr == '.') {
+            decimal_count += 1;
+            token->type = TOK_FLOAT;
+            if (decimal_count > 1) {
+                error("Invalid floating point number");
+            }
+        }
+        advance(lexer, token);
+    }
+    return token;
+}
+
+// Scan a double quote string
+static struct token* lex_string(struct lexer* lexer, struct token* token) {
+    produce_token(lexer, token, lexer->curr, TOK_STRING);
+    advance(lexer, token); // opening quote
+    while (*lexer->curr != '\"') {
+        advance(lexer, token);
+    }
+    advance(lexer, token); // closing quote
+    return token;
+}
+
+// Scan a single quote character
+static struct token* lex_char(struct lexer* lexer, struct token* token) {
+    produce_token(lexer, token, lexer->curr, TOK_CHAR);
+    advance(lexer, token); // opening quote
+    while (*lexer->curr != '\'') {
+        advance(lexer, token);
+    }
+    advance(lexer, token); // closing quote
+    return token;
+}
+
+// Scan a one or two-character operator
+static struct token* lex_operator(struct lexer* lexer, struct token* token,
+                                  int one_type, char two_char, int two_type) {
+    produce_token(lexer, token, lexer->curr, one_type);
+    advance(lexer, token);
+    if (two_char != '\0' && *lexer->curr == two_char) {
+        advance(lexer, token);
+        token->type = two_type;
+    }
+    return token;
+}
+
+// Skip comments
+static void skip_line_comment(struct lexer* lexer) {
+    while (*lexer->curr != '\n' && *lexer->curr != '\0') {
+        lexer->curr++;
+    }
+}
+
+// Skip whitespace
+static void skip_whitespace(struct lexer* lexer) {
+    lexer->curr += 1;
+}
+
+//  updating line count for newline
+static void skip_newline(struct lexer* lexer) {
+    lexer->line_num += 1;
+    lexer->curr += 1;
+}
+
+void lexer_init(struct lexer* lexer, char* source) {
+    lexer->curr = source;
+    lexer->line_num = 1;
+    lexer->col_num = 1;
+}
+
 char* read_file(char* path) {
-    FILE* File = fopen(path, "r");
+    FILE* file = NULL;
+#ifdef _MSC_VER
+    fopen_s(&file, path, "r");
+#else
+    file = fopen(path, "r");
+#endif
 
-    if (File) {
-        fseek(File, 0, SEEK_END);
-        size_t Size = (size_t)ftell(File);
-        fseek(File, 0, SEEK_SET);
+    if (file) {
+        fseek(file, 0, SEEK_END);
+        size_t size = (size_t)ftell(file);
+        fseek(file, 0, SEEK_SET);
 
-        if (Size) {
-            char* Content = (char*)malloc(Size + 1);
-            fread(Content, Size, 1, File);
-            fclose(File);
-            Content[Size] = '\0';
-            curr = Content;
-            return Content;
+        if (size) {
+            char* content = (char*)malloc(size + 1);
+            fread(content, size, 1, file);
+            fclose(file);
+            content[size] = '\0';
+            lexer_init(&g_lexer, content);
+            return content;
         }
         error("File does not exist.");
         return NULL;
@@ -51,304 +143,78 @@ char* read_file(char* path) {
 }
 
 struct token* next_token(void) {
-    token = malloc(sizeof(struct token));
+    struct lexer* lexer = &g_lexer;
+
+    struct token* token = malloc(sizeof(struct token));
     token->length = 0;
 
-    while (*curr != '\0') {
-        if (is_alpha(*curr)) {
-            produce_token(token, curr, TOK_ID);
-            while (is_alpha(*curr) || is_num(*curr) || *curr == '_') {
-                advance();
-            }
-            token->type = generate_type(token);
-            return token;
+    while (*lexer->curr != '\0') {
+        // Identifiers and keywords
+        if (is_alpha(*lexer->curr)) {
+            return lex_identifier(lexer, token);
         }
-        else if (is_num(*curr)) {
-            produce_token(token, curr, TOK_INT);
-            int dec = 0;
-            while (is_num(*curr) || *curr == '.') {
-                if (*curr == '.') {
-                    dec += 1;
-                    token->type = TOK_FLOAT;
-                    if (dec > 1) {
-                        error("Invalid floating point number");
-                    }
-                }
-                advance();
-            }
-            return token;
+        // Numeric value
+        if (is_num(*lexer->curr)) {
+            return lex_number(lexer, token);
         }
-        else if (*curr == '=') {
-            produce_token(token, curr, *curr);
-            advance();
-            if (*curr == '=') {
-                advance();
-                token->type = TOK_EQEQ;
+
+        // Operators
+        switch (*lexer->curr) {
+        case '=': {
+            struct token* result = lex_operator(lexer, token, '=', '=', TOK_EQEQ);
+            if (result->type == '=') {
+                result->type = TOK_ASSIGN;
             }
-            else {
-                token->type = TOK_ASSIGN;
-            }
-            return token;
+            return result;
         }
-        else if (*curr == '>') {
-            produce_token(token, curr, *curr);
-            advance();
-            if (*curr == '=') {
-                advance();
-                token->type = TOK_GTEQ;
-            }
-            return token;
-        }
-        else if (*curr == '<') {
-            produce_token(token, curr, *curr);
-            advance();
-            if (*curr == '=') {
-                advance();
-                token->type = TOK_LTEQ;
-            }
-            return token;
-        }
-        else if (*curr == '!') {
-            produce_token(token, curr, *curr);
-            advance();
-            if (*curr == '=') {
-                advance();
-                token->type = TOK_NOTEQ;
-            }
-            return token;
-        }
-        else if (*curr == ':') {
-            produce_token(token, curr, *curr);
-            advance();
-            return token;
-        }
-        else if (*curr == '+') {
-            produce_token(token, curr, *curr);
-            advance();
-            if (*curr == '=') {
-                advance();
-                token->type = TOK_ADD_ASSIGN;
-            }
-            return token;
-        }
-        else if (*curr == '-') {
-            produce_token(token, curr, *curr);
-            advance();
-            if (*curr == '=') {
-                advance();
-                token->type = TOK_SUB_ASSIGN;
-            }
-            return token;
-        }
-        else if (*curr == '*') {
-            produce_token(token, curr, *curr);
-            advance();
-            if (*curr == '=') {
-                advance();
-                token->type = TOK_MUL_ASSIGN;
-            }
-            return token;
-        }
-        else if (*curr == '/') {
-            produce_token(token, curr, *curr);
-            advance();
-            if (*curr == '=') {
-                advance();
-                token->type = TOK_DIV_ASSIGN;
-            }
-            return token;
-        }
-        else if (*curr == '&') {
-            produce_token(token, curr, *curr);
-            advance();
-            if (*curr == '&') {
-                advance();
-                token->type = TOK_AND;
-            }
-            return token;
-        }
-        else if (*curr == '\"') {
-            produce_token(token, curr, TOK_STRING);
-            advance();
-            while (*curr != '\"') {
-                advance();
-            }
-            advance();
-            return token;
-        }
-        else if (*curr == '\'') {
-            produce_token(token, curr, TOK_CHAR);
-            advance();
-            while (*curr != '\'') {
-                advance();
-            }
-            advance();
-            return token;
-        }
-        else if (*curr == '#') {
-            while (*curr != '\n' && *curr != '\0') {
-                curr++;
-            }
+        case '>':
+            return lex_operator(lexer, token, *lexer->curr, '=', TOK_GTEQ);
+        case '<':
+            return lex_operator(lexer, token, *lexer->curr, '=', TOK_LTEQ);
+        case '!':
+            return lex_operator(lexer, token, *lexer->curr, '=', TOK_NOTEQ);
+        case '+':
+            return lex_operator(lexer, token, *lexer->curr, '=', TOK_ADD_ASSIGN);
+        case '-':
+            return lex_operator(lexer, token, *lexer->curr, '=', TOK_SUB_ASSIGN);
+        case '*':
+            return lex_operator(lexer, token, *lexer->curr, '=', TOK_MUL_ASSIGN);
+        case '/':
+            return lex_operator(lexer, token, *lexer->curr, '=', TOK_DIV_ASSIGN);
+        case '&':
+            return lex_operator(lexer, token, *lexer->curr, '&', TOK_AND);
+
+        // String and char
+        case '\"':
+            return lex_string(lexer, token);
+        case '\'':
+            return lex_char(lexer, token);
+
+        // Comments
+        case '#':
+            skip_line_comment(lexer);
             continue;
-        }
-        else if (*curr == '\n') {
-            line_num += 1;
-            curr += 1;
-        }
-        else if (*curr == ' ' || *curr == '\t' || *curr == '\r' ||
-                 *curr == '\v' || *curr == '\f') {
-            curr += 1;
-        }
-        else {
-            produce_token(token, curr, *curr);
-            advance();
+
+        // Whitespace
+        case '\n':
+            skip_newline(lexer);
+            continue;
+        case ' ':
+        case '\t':
+        case '\r':
+        case '\v':
+        case '\f':
+            skip_whitespace(lexer);
+            continue;
+
+        // Symbols
+        default:
+            produce_token(lexer, token, lexer->curr, *lexer->curr);
+            advance(lexer, token);
             return token;
         }
     }
+
+    free(token);
     return NULL;
-}
-
-static void produce_token(struct token* tok, char* start_pos, int type) {
-    tok->start_pos = start_pos;
-    tok->type = type;
-    tok->line_num = line_num;
-}
-
-static int token_cmp(struct token* tok, char* target, int target_length) {
-    if (tok->length != target_length) {
-        return 0;
-    }
-    return (memcmp(tok->start_pos, target, (size_t)tok->length) == 0);
-}
-
-static int generate_type(struct token* tok) {
-    if (token_cmp(tok, "s8", 2)) {
-        return TOK_S8;
-    }
-    else if (token_cmp(tok, "s16", 3)) {
-        return TOK_S16;
-    }
-    else if (token_cmp(tok, "s32", 3)) {
-        return TOK_S32;
-    }
-    else if (token_cmp(tok, "s64", 3)) {
-        return TOK_S64;
-    }
-
-    else if (token_cmp(tok, "u8", 2)) {
-        return TOK_U8;
-    }
-    else if (token_cmp(tok, "u16", 3)) {
-        return TOK_U16;
-    }
-    else if (token_cmp(tok, "u32", 3)) {
-        return TOK_U32;
-    }
-    else if (token_cmp(tok, "u64", 3)) {
-        return TOK_U64;
-    }
-
-    else if (token_cmp(tok, "f32", 3)) {
-        return TOK_F32;
-    }
-    else if (token_cmp(tok, "f64", 3)) {
-        return TOK_F64;
-    }
-
-    else if (token_cmp(tok, "let", 3)) {
-        return TOK_LET;
-    }
-    else if (token_cmp(tok, "fn", 2)) {
-        return TOK_FN;
-    }
-    else if (token_cmp(tok, "entry", 5)) {
-        return TOK_ENTRY;
-    }
-
-    else if (token_cmp(tok, "if", 2)) {
-        return TOK_IF;
-    }
-    else if (token_cmp(tok, "else", 4)) {
-        return TOK_ELSE;
-    }
-
-    else if (token_cmp(tok, "break", 5)) {
-        return TOK_BREAK;
-    }
-    else if (token_cmp(tok, "continue", 8)) {
-        return TOK_CONTINUE;
-    }
-
-    else if (token_cmp(tok, "return", 6)) {
-        return TOK_RETURN;
-    }
-
-    else if (token_cmp(tok, "collection", 10)) {
-        return TOK_COLLECTION;
-    }
-    else if (token_cmp(tok, "parent", 6)) {
-        return TOK_PARENT;
-    }
-    else if (token_cmp(tok, "attach", 6)) {
-        return TOK_ATTACH;
-    }
-    else if (token_cmp(tok, "from", 4)) {
-        return TOK_FROM;
-    }
-    else if (token_cmp(tok, "const", 5)) {
-        return TOK_CONST;
-    }
-    else if (token_cmp(tok, "ssize", 5)) {
-        return TOK_SSIZE;
-    }
-    else if (token_cmp(tok, "usize", 5)) {
-        return TOK_USIZE;
-    }
-    else if (token_cmp(tok, "bool", 4)) {
-        return TOK_BOOL;
-    }
-    else if (token_cmp(tok, "string", 6)) {
-        return TOK_STRING_TYPE;
-    }
-    else if (token_cmp(tok, "void", 4)) {
-        return TOK_VOID;
-    }
-    else if (token_cmp(tok, "while", 5)) {
-        return TOK_WHILE;
-    }
-    else if (token_cmp(tok, "struct", 6)) {
-        return TOK_STRUCT;
-    }
-    else if (token_cmp(tok, "interface", 9)) {
-        return TOK_INTERFACE;
-    }
-    else if (token_cmp(tok, "extends", 7)) {
-        return TOK_EXTENDS;
-    }
-    else if (token_cmp(tok, "module", 6)) {
-        return TOK_MODULE;
-    }
-    else if (token_cmp(tok, "implements", 10)) {
-        return TOK_IMPLEMENTS;
-    }
-    else if (token_cmp(tok, "static", 6)) {
-        return TOK_STATIC;
-    }
-    else if (token_cmp(tok, "export", 6)) {
-        return TOK_EXPORT;
-    }
-    else if (token_cmp(tok, "import", 6)) {
-        return TOK_IMPORT;
-    }
-
-    return TOK_ID;
-}
-
-static int is_alpha(int character) {
-    return (character >= 'A' && character <= 'Z') ||
-           (character >= 'a' && character <= 'z');
-}
-
-static int is_num(int character) {
-    return (character >= '0' && character <= '9');
 }

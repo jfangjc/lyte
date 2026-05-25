@@ -4,7 +4,13 @@
 
 static FILE* target;
 
-void emitter(const char* file_name) { target = fopen(file_name, "w"); }
+void emitter(const char* file_name) {
+#ifdef _MSC_VER
+    fopen_s(&target, file_name, "w");
+#else
+    target = fopen(file_name, "w");
+#endif
+}
 
 void emit_finish(void) { fclose(target); }
 

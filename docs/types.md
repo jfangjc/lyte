@@ -15,22 +15,14 @@
 | `f128` | `long double`| 128-bit IEEE 754 floating point  |
 | `ssize`| `ssize_t`    | Signed pointer-sized integer     |
 | `usize`| `size_t`     | Unsigned pointer-sized integer   |
-| `bool` | `_Bool`      | Boolean (`true` / `false`)       |
-| `void` | `void`       | No value                         |
-
-# String Type
-
-| Lyte     | Description                            |
-|----------|----------------------------------------|
-| `string` | String type (implementation TBD)       |
 
 # Pointer Types
 
-Variables are declared with `let` (mutable) or `const` (compile-time constant).
+Bindings are declared with `var` for mutable values or `const` for immutable values.
 
-| Syntax | Meaning                                        |
-|--------|------------------------------------------------|
-| `T`    | Stack-allocated value of type `T`              |
-| `*T`   | Raw pointer to a value of type `T`             |
+| Syntax | Meaning                                          |
+|--------|--------------------------------------------------|
+| `T`    | Stack-allocated value of type `T`                |
+| `*T`   | Raw pointer to a value of type `T`               |
 | `&x`   | Address-of — retrieves the memory address of `x` |
-| `*x`   | Dereference — accesses the value at a pointer  |
+| `*x`   | Dereference — accesses the value at a pointer    |

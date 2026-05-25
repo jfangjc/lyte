@@ -1,5 +1,5 @@
 # Control Flow
-# Demonstrates if/else and while (the only loop construct in Lyte).
+module app.control
 
 fn abs(n: s32): s32 {
     if (n < 0) {
@@ -11,37 +11,23 @@ fn abs(n: s32): s32 {
 fn max(a: s32, b: s32): s32 {
     if (a > b) {
         return a;
-    } else {
+    }
+    else {
         return b;
     }
 }
 
 fn factorial(n: s32): s32 {
-    let result: s32 = 1;
-    let i: s32 = 1;
-    while (i <= n) {
-        result *= i;
-        i += 1;
+    var result: s32 = 1;
+    for var i: s32 = 1; i <= n; i = i + 1 {
+        result = result * i;
     }
     return result;
 }
 
-fn fibonacci(n: s32): s32 {
-    let a: s32 = 0;
-    let b: s32 = 1;
-    let i: s32 = 0;
-    while (i < n) {
-        let temp: s32 = b;
-        b = a + b;
-        a = temp;
-        i += 1;
-    }
-    return a;
-}
-
-entry main {
-    let x: s32 = abs(-42);
-    let m: s32 = max(10, 20);
-    let f: s32 = factorial(5);
-    let fib: s32 = fibonacci(10);
+fn main(): s32 {
+    var x: s32 = abs(-42);
+    var m: s32 = max(10, 20);
+    var f: s32 = factorial(5);
+    return x + m + f;
 }

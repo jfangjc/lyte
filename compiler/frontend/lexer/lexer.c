@@ -144,7 +144,6 @@ char* read_file(char* path) {
 
 struct token* next_token(void) {
     struct lexer* lexer = &g_lexer;
-
     struct token* token = malloc(sizeof(struct token));
     token->length = 0;
 

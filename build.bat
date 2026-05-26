@@ -10,4 +10,4 @@ cmake --build build
 :: Just in case
 timeout /t 1 /nobreak > nul
 
-.\build\Debug\lyte.exe
+.\build\lyte.exe

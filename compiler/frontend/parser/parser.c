@@ -211,7 +211,7 @@ struct var_decl* parse_var_decl(void) {
         next();
         var->type = parse_type();
     } else {
-        var->type = NULL; // NULL for auto/unknown type
+        var->type = NULL; // NULL for unknown type
     }
 
     var->value = parse_initialiser();

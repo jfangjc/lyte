@@ -49,6 +49,7 @@ file(GLOB_RECURSE COMPILER_SRC_FILES "${CMAKE_SOURCE_DIR}/compiler/*.c")
 # Include Directories
 include_directories(
     ${CMAKE_SOURCE_DIR}/compiler
+    ${CMAKE_SOURCE_DIR}/compiler/frontend/source
     ${CMAKE_SOURCE_DIR}/compiler/frontend/lexer
     ${CMAKE_SOURCE_DIR}/compiler/frontend/parser
     ${CMAKE_SOURCE_DIR}/compiler/frontend/ast

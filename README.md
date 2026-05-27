@@ -38,10 +38,11 @@ lyte/
 |-- compiler/               # Core compiler library
 |   |-- common.h            # Shared token and type definitions
 |   |-- frontend/           # Parsing pipeline
+|   |   |-- source/         # Pre-lexer
 |   |   |-- lexer/          # Tokeniser
 |   |   |-- parser/         # Parser
 |   |   `-- ast/            # AST utilities
-|   |-- middle/             # Semantic analysis (planned)
+|   |-- middle/             # Semantic analysis
 |   |   |-- resolver/       # Dependency graph validation
 |   |   |-- linker/         # Module linking and export resolution
 |   |   |-- scope/          # Module privacy validation

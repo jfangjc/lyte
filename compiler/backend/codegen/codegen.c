@@ -22,9 +22,7 @@ static void write_fmt(char* buffer, size_t size, const char* fmt, ...) {
     va_end(args);
 }
 
-static void copy_str(char* buffer, size_t size, const char* value) {
-    write_fmt(buffer, size, "%s", value);
-}
+static void copy_str(char* buffer, size_t size, const char* value) { write_fmt(buffer, size, "%s", value); }
 
 static char* duplicate_str(const char* value) {
     size_t len = strlen(value) + 1;
@@ -36,14 +34,10 @@ static char* duplicate_str(const char* value) {
 }
 
 // Helper to generate a new temporary register name
-static void gen_temp(char* buffer, size_t size) {
-    write_fmt(buffer, size, "%%t%d", tmp_count++);
-}
+static void gen_temp(char* buffer, size_t size) { write_fmt(buffer, size, "%%t%d", tmp_count++); }
 
 // Helper to generate a new label
-static void gen_label(char* buffer, size_t size) {
-    write_fmt(buffer, size, "L%d", label_count++);
-}
+static void gen_label(char* buffer, size_t size) { write_fmt(buffer, size, "L%d", label_count++); }
 
 struct symbol {
     char* name;
@@ -82,8 +76,7 @@ static void free_symbols(void) {
 }
 
 static int type_name_is(struct type* type, const char* name) {
-    return type->name != NULL &&
-           type->name->length == (int)strlen(name) &&
+    return type->name != NULL && type->name->length == (int)strlen(name) &&
            strncmp(type->name->start_pos, name, (size_t)type->name->length) == 0;
 }
 
@@ -113,21 +106,29 @@ static void map_type_str(struct type* type, char* buffer, size_t size) {
 
     if (type_name_is(type, "s8") || type_name_is(type, "u8")) {
         copy_str(buffer, size, "i8");
-    } else if (type_name_is(type, "s16") || type_name_is(type, "u16")) {
+    }
+    else if (type_name_is(type, "s16") || type_name_is(type, "u16")) {
         copy_str(buffer, size, "i16");
-    } else if (type_name_is(type, "s32") || type_name_is(type, "u32")) {
+    }
+    else if (type_name_is(type, "s32") || type_name_is(type, "u32")) {
         copy_str(buffer, size, "i32");
-    } else if (type_name_is(type, "s64") || type_name_is(type, "u64")) {
+    }
+    else if (type_name_is(type, "s64") || type_name_is(type, "u64")) {
         copy_str(buffer, size, "i64");
-    } else if (type_name_is(type, "ssize") || type_name_is(type, "usize")) {
+    }
+    else if (type_name_is(type, "ssize") || type_name_is(type, "usize")) {
         copy_str(buffer, size, "i64");
-    } else if (type_name_is(type, "f32")) {
+    }
+    else if (type_name_is(type, "f32")) {
         copy_str(buffer, size, "float");
-    } else if (type_name_is(type, "f64")) {
+    }
+    else if (type_name_is(type, "f64")) {
         copy_str(buffer, size, "double");
-    } else if (type_name_is(type, "f128")) {
+    }
+    else if (type_name_is(type, "f128")) {
         copy_str(buffer, size, "fp128");
-    } else {
+    }
+    else {
         copy_str(buffer, size, "i32");
     }
 }
@@ -174,8 +175,7 @@ void gen_expr(struct expr* expr, char* out_reg, size_t out_size) {
             break;
         }
 
-        write_fmt(buffer, sizeof(buffer), "  %s = %s i32 %s, %s\n", out_reg,
-                  op_str, left_reg, right_reg);
+        write_fmt(buffer, sizeof(buffer), "  %s = %s i32 %s, %s\n", out_reg, op_str, left_reg, right_reg);
         emit(buffer);
         break;
     }
@@ -185,20 +185,17 @@ void gen_expr(struct expr* expr, char* out_reg, size_t out_size) {
         gen_expr(assign->value, val_reg, sizeof(val_reg));
 
         char var_name[NAME_BUF_SIZE];
-        snprintf(var_name, sizeof(var_name), "%.*s", assign->id->length,
-                 assign->id->start_pos);
+        snprintf(var_name, sizeof(var_name), "%.*s", assign->id->length, assign->id->start_pos);
 
         if (assign->op == TOK_ASSIGN) {
-            write_fmt(buffer, sizeof(buffer),
-                      "  store i32 %s, i32* %%var_%s\n", val_reg, var_name);
+            write_fmt(buffer, sizeof(buffer), "  store i32 %s, i32* %%var_%s\n", val_reg, var_name);
             emit(buffer);
             copy_str(out_reg, out_size, val_reg);
         }
         else {
             char curr_val[REG_BUF_SIZE];
             gen_temp(curr_val, sizeof(curr_val));
-            write_fmt(buffer, sizeof(buffer),
-                      "  %s = load i32, i32* %%var_%s\n", curr_val, var_name);
+            write_fmt(buffer, sizeof(buffer), "  %s = load i32, i32* %%var_%s\n", curr_val, var_name);
             emit(buffer);
 
             char new_val[REG_BUF_SIZE];
@@ -223,12 +220,10 @@ void gen_expr(struct expr* expr, char* out_reg, size_t out_size) {
                 break;
             }
 
-            write_fmt(buffer, sizeof(buffer), "  %s = %s i32 %s, %s\n",
-                      new_val, op_str, curr_val, val_reg);
+            write_fmt(buffer, sizeof(buffer), "  %s = %s i32 %s, %s\n", new_val, op_str, curr_val, val_reg);
             emit(buffer);
 
-            write_fmt(buffer, sizeof(buffer),
-                      "  store i32 %s, i32* %%var_%s\n", new_val, var_name);
+            write_fmt(buffer, sizeof(buffer), "  store i32 %s, i32* %%var_%s\n", new_val, var_name);
             emit(buffer);
             copy_str(out_reg, out_size, new_val);
         }
@@ -268,8 +263,7 @@ void gen_expr(struct expr* expr, char* out_reg, size_t out_size) {
             break;
         }
 
-        write_fmt(buffer, sizeof(buffer), "  %s = icmp %s i32 %s, %s\n",
-                  out_reg, cond_code, left_reg, right_reg);
+        write_fmt(buffer, sizeof(buffer), "  %s = icmp %s i32 %s, %s\n", out_reg, cond_code, left_reg, right_reg);
         emit(buffer);
         break;
     }
@@ -281,16 +275,14 @@ void gen_expr(struct expr* expr, char* out_reg, size_t out_size) {
     case EXPR_ID: {
         struct token* tok = expr->exprs.id;
         char var_name[NAME_BUF_SIZE];
-        snprintf(var_name, sizeof(var_name), "%.*s", tok->length,
-                 tok->start_pos);
+        snprintf(var_name, sizeof(var_name), "%.*s", tok->length, tok->start_pos);
 
         struct type* type = get_symbol_type(var_name);
         char type_str[TYPE_BUF_SIZE];
         map_type_str(type, type_str, sizeof(type_str));
 
         gen_temp(out_reg, out_size);
-        write_fmt(buffer, sizeof(buffer), "  %s = load %s, %s* %%var_%s\n",
-                  out_reg, type_str, type_str, var_name);
+        write_fmt(buffer, sizeof(buffer), "  %s = load %s, %s* %%var_%s\n", out_reg, type_str, type_str, var_name);
         emit(buffer);
         break;
     }
@@ -302,8 +294,7 @@ void gen_expr(struct expr* expr, char* out_reg, size_t out_size) {
             if (unary->expr->type == EXPR_ID) {
                 struct token* tok = unary->expr->exprs.id;
                 char var_name[NAME_BUF_SIZE];
-                snprintf(var_name, sizeof(var_name), "%.*s", tok->length,
-                         tok->start_pos);
+                snprintf(var_name, sizeof(var_name), "%.*s", tok->length, tok->start_pos);
                 write_fmt(out_reg, out_size, "%%var_%s", var_name);
             }
             else {
@@ -318,8 +309,7 @@ void gen_expr(struct expr* expr, char* out_reg, size_t out_size) {
 
             // Assume i32 for now.
             gen_temp(out_reg, out_size);
-            write_fmt(buffer, sizeof(buffer), "  %s = load i32, i32* %s\n",
-                      out_reg, ptr_reg);
+            write_fmt(buffer, sizeof(buffer), "  %s = load i32, i32* %s\n", out_reg, ptr_reg);
             emit(buffer);
         }
         else {
@@ -328,12 +318,10 @@ void gen_expr(struct expr* expr, char* out_reg, size_t out_size) {
             gen_expr(unary->expr, val_reg, sizeof(val_reg));
             gen_temp(out_reg, out_size);
             if (unary->op == '!') {
-                write_fmt(buffer, sizeof(buffer), "  %s = icmp eq i32 %s, 0\n",
-                          out_reg, val_reg);
+                write_fmt(buffer, sizeof(buffer), "  %s = icmp eq i32 %s, 0\n", out_reg, val_reg);
             }
             else if (unary->op == '-') {
-                write_fmt(buffer, sizeof(buffer), "  %s = sub i32 0, %s\n",
-                          out_reg, val_reg);
+                write_fmt(buffer, sizeof(buffer), "  %s = sub i32 0, %s\n", out_reg, val_reg);
             }
             emit(buffer);
         }
@@ -342,8 +330,12 @@ void gen_expr(struct expr* expr, char* out_reg, size_t out_size) {
     case EXPR_CALL: {
         struct call_expr* call = expr->exprs.call_expr;
         char fn_name[NAME_BUF_SIZE];
-        snprintf(fn_name, sizeof(fn_name), "%.*s", call->id->length,
-                 call->id->start_pos);
+        if (call->name != NULL) {
+            copy_str(fn_name, sizeof(fn_name), call->name);
+        }
+        else {
+            snprintf(fn_name, sizeof(fn_name), "%.*s", call->id->length, call->id->start_pos);
+        }
 
         char arg_regs[8][REG_BUF_SIZE];
         int arg_count = 0;
@@ -355,13 +347,11 @@ void gen_expr(struct expr* expr, char* out_reg, size_t out_size) {
         }
 
         gen_temp(out_reg, out_size);
-        write_fmt(buffer, sizeof(buffer), "  %s = call i32 @%s(", out_reg,
-                  fn_name);
+        write_fmt(buffer, sizeof(buffer), "  %s = call i32 @%s(", out_reg, fn_name);
         emit(buffer);
 
         for (int i = 0; i < arg_count; i++) {
-            write_fmt(buffer, sizeof(buffer), "i32 %s%s", arg_regs[i],
-                      (i < arg_count - 1) ? ", " : "");
+            write_fmt(buffer, sizeof(buffer), "i32 %s%s", arg_regs[i], (i < arg_count - 1) ? ", " : "");
             emit(buffer);
         }
         emit(")\n");
@@ -381,14 +371,12 @@ void gen_stmt(struct stmt* stmt) {
     case STMT_VAR: {
         struct var_decl* decl = stmt->stmt.var_decl;
         char var_name[NAME_BUF_SIZE];
-        snprintf(var_name, sizeof(var_name), "%.*s", decl->name->length,
-                 decl->name->start_pos);
+        snprintf(var_name, sizeof(var_name), "%.*s", decl->name->length, decl->name->start_pos);
 
         char type_str[TYPE_BUF_SIZE];
         map_type_str(decl->type, type_str, sizeof(type_str));
 
-        write_fmt(buffer, sizeof(buffer), "  %%var_%s = alloca %s\n", var_name,
-                  type_str);
+        write_fmt(buffer, sizeof(buffer), "  %%var_%s = alloca %s\n", var_name, type_str);
         emit(buffer);
 
         add_symbol(var_name, decl->type);
@@ -396,9 +384,7 @@ void gen_stmt(struct stmt* stmt) {
         if (decl->value != NULL) {
             char val_reg[REG_BUF_SIZE];
             gen_expr(decl->value, val_reg, sizeof(val_reg));
-            write_fmt(buffer, sizeof(buffer),
-                      "  store %s %s, %s* %%var_%s\n", type_str, val_reg,
-                      type_str, var_name);
+            write_fmt(buffer, sizeof(buffer), "  store %s %s, %s* %%var_%s\n", type_str, val_reg, type_str, var_name);
             emit(buffer);
         }
         break;
@@ -422,15 +408,12 @@ void gen_stmt(struct stmt* stmt) {
         char cond_reg[REG_BUF_SIZE];
         gen_expr(if_s->if_cond, cond_reg, sizeof(cond_reg));
 
-        char then_label[REG_BUF_SIZE], else_label[REG_BUF_SIZE],
-             end_label[REG_BUF_SIZE];
+        char then_label[REG_BUF_SIZE], else_label[REG_BUF_SIZE], end_label[REG_BUF_SIZE];
         gen_label(then_label, sizeof(then_label));
         gen_label(else_label, sizeof(else_label));
         gen_label(end_label, sizeof(end_label));
 
-        write_fmt(buffer, sizeof(buffer),
-                  "  br i1 %s, label %%%s, label %%%s\n", cond_reg,
-                  then_label, else_label);
+        write_fmt(buffer, sizeof(buffer), "  br i1 %s, label %%%s, label %%%s\n", cond_reg, then_label, else_label);
         emit(buffer);
 
         emit(then_label);
@@ -498,8 +481,7 @@ void gen_fn(struct fn_decl* fn) {
     struct param* p = fn->params;
     while (p != NULL) {
         char p_name[NAME_BUF_SIZE];
-        snprintf(p_name, sizeof(p_name), "%.*s", p->name->length,
-                 p->name->start_pos);
+        snprintf(p_name, sizeof(p_name), "%.*s", p->name->length, p->name->start_pos);
         map_type_str(p->type, type_str, sizeof(type_str));
         emit(type_str);
         emit(" %");
@@ -519,16 +501,12 @@ void gen_fn(struct fn_decl* fn) {
     char buffer[IR_BUF_SIZE];
     while (p != NULL) {
         char p_name[NAME_BUF_SIZE];
-        snprintf(p_name, sizeof(p_name), "%.*s", p->name->length,
-                 p->name->start_pos);
+        snprintf(p_name, sizeof(p_name), "%.*s", p->name->length, p->name->start_pos);
         map_type_str(p->type, type_str, sizeof(type_str));
 
-        write_fmt(buffer, sizeof(buffer), "  %%var_%s = alloca %s\n", p_name,
-                  type_str);
+        write_fmt(buffer, sizeof(buffer), "  %%var_%s = alloca %s\n", p_name, type_str);
         emit(buffer);
-        write_fmt(buffer, sizeof(buffer),
-                  "  store %s %%%s, %s* %%var_%s\n", type_str, p_name,
-                  type_str, p_name);
+        write_fmt(buffer, sizeof(buffer), "  store %s %%%s, %s* %%var_%s\n", type_str, p_name, type_str, p_name);
         emit(buffer);
 
         p = p->next;

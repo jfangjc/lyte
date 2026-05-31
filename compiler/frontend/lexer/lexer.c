@@ -1,21 +1,16 @@
 #include "lexer.h"
-#include "keywords.h"
 #include "common.h"
 #include "error.h"
+#include "file.h"
+#include "keywords.h"
 
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 static struct lexer g_lexer;
 
-static int is_alpha(int c) {
-    return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
-}
+static int is_alpha(int c) { return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'); }
 
-static int is_num(int c) {
-    return (c >= '0' && c <= '9');
-}
+static int is_num(int c) { return (c >= '0' && c <= '9'); }
 
 static void advance(struct lexer* lexer, struct token* token) {
     lexer->col_num += 1;
@@ -23,8 +18,7 @@ static void advance(struct lexer* lexer, struct token* token) {
     token->length += 1;
 }
 
-static void produce_token(struct lexer* lexer, struct token* token,
-                          char* start_pos, int type) {
+static void produce_token(struct lexer* lexer, struct token* token, char* start_pos, int type) {
     token->start_pos = start_pos;
     token->type = type;
     token->line_num = lexer->line_num;
@@ -79,8 +73,7 @@ static struct token* lex_char(struct lexer* lexer, struct token* token) {
 }
 
 // Scan a one or two-character operator
-static struct token* lex_operator(struct lexer* lexer, struct token* token,
-                                  int one_type, char two_char, int two_type) {
+static struct token* lex_operator(struct lexer* lexer, struct token* token, int one_type, char two_char, int two_type) {
     produce_token(lexer, token, lexer->curr, one_type);
     advance(lexer, token);
     if (two_char != '\0' && *lexer->curr == two_char) {
@@ -98,9 +91,7 @@ static void skip_line_comment(struct lexer* lexer) {
 }
 
 // Skip whitespace
-static void skip_whitespace(struct lexer* lexer) {
-    lexer->curr += 1;
-}
+static void skip_whitespace(struct lexer* lexer) { lexer->curr += 1; }
 
 //  updating line count for newline
 static void skip_newline(struct lexer* lexer) {
@@ -115,31 +106,14 @@ void lexer_init(struct lexer* lexer, char* source) {
 }
 
 char* read_file(char* path) {
-    FILE* file = NULL;
-#ifdef _MSC_VER
-    fopen_s(&file, path, "r");
-#else
-    file = fopen(path, "r");
-#endif
-
-    if (file) {
-        fseek(file, 0, SEEK_END);
-        size_t size = (size_t)ftell(file);
-        fseek(file, 0, SEEK_SET);
-
-        if (size) {
-            char* content = (char*)malloc(size + 1);
-            fread(content, size, 1, file);
-            fclose(file);
-            content[size] = '\0';
-            lexer_init(&g_lexer, content);
-            return content;
-        }
+    char* content = read_file_contents(path);
+    if (content[0] == '\0') {
+        free(content);
         error("File does not exist.");
-        return NULL;
     }
-    error("File does not exist.");
-    return NULL;
+
+    lexer_init(&g_lexer, content);
+    return content;
 }
 
 struct token* next_token(void) {

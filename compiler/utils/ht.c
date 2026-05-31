@@ -56,10 +56,8 @@ struct token* ht_lookup(struct ht* ht, struct token* value) {
     unsigned int index = (key & (unsigned int)(ht->capacity - 1));
 
     while (ht->entries[index].value != NULL) {
-        if (ht->entries[index].key == key &&
-            ht->entries[index].value->length == value->length &&
-            strncmp(ht->entries[index].value->start_pos, value->start_pos,
-                    (size_t)value->length) == 0) {
+        if (ht->entries[index].key == key && ht->entries[index].value->length == value->length &&
+            strncmp(ht->entries[index].value->start_pos, value->start_pos, (size_t)value->length) == 0) {
             return ht->entries[index].value;
         }
         index += 1;

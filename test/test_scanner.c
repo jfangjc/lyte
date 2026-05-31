@@ -1,6 +1,6 @@
 #include "common.h"
-#include "lexer.h"
 #include "framework.h"
+#include "lexer.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,8 +17,7 @@ void test_scanner_basic(void) {
     t = next_token();
     test_assert_eq(TOK_ID, t->type, __FILE__, __LINE__);
     test_assert_true(strncmp(t->start_pos, "x", (size_t)t->length) == 0,
-                     "strncmp(t->start_pos, \"x\", (size_t)t->length) == 0",
-                     __FILE__, __LINE__);
+                     "strncmp(t->start_pos, \"x\", (size_t)t->length) == 0", __FILE__, __LINE__);
 
     t = next_token();
     test_assert_eq(TOK_ASSIGN, t->type, __FILE__, __LINE__);
@@ -26,16 +25,14 @@ void test_scanner_basic(void) {
     t = next_token();
     test_assert_eq(TOK_INT, t->type, __FILE__, __LINE__);
     test_assert_true(strncmp(t->start_pos, "10", (size_t)t->length) == 0,
-                     "strncmp(t->start_pos, \"10\", (size_t)t->length) == 0",
-                     __FILE__, __LINE__);
+                     "strncmp(t->start_pos, \"10\", (size_t)t->length) == 0", __FILE__, __LINE__);
 
     remove("test_basic.lt");
 }
 
 void test_scanner_keywords(void) {
-    create_temp_file("test_keywords.lt",
-        "module export import type fn const var return if else for "
-        "continue break unsafe");
+    create_temp_file("test_keywords.lt", "module export import type fn const var return if else for "
+                                         "continue break unsafe");
     read_file("test_keywords.lt");
 
     test_assert_eq(TOK_MODULE, next_token()->type, __FILE__, __LINE__);
@@ -71,8 +68,7 @@ void test_scanner_operators(void) {
 }
 
 void test_scanner_comments(void) {
-    create_temp_file("test_comments.lt",
-                     "var x = 1; # This is a comment\nvar y = 2;");
+    create_temp_file("test_comments.lt", "var x = 1; # This is a comment\nvar y = 2;");
     read_file("test_comments.lt");
 
     test_assert_eq(TOK_VAR, next_token()->type, __FILE__, __LINE__);

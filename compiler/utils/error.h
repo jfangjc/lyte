@@ -1,6 +1,6 @@
 #ifndef COMPILER_ERROR
 #define COMPILER_ERROR
 
-void error(char* error_msg);
+void error(const char* error_msg);
 
 #endif

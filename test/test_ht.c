@@ -1,6 +1,6 @@
+#include "framework.h"
 #include "ht.h"
 #include "lexer.h"
-#include "framework.h"
 #include <string.h>
 
 void test_ht_basic(void) {
@@ -24,8 +24,7 @@ void test_ht_basic(void) {
     t2.length = 4;
 
     struct token* not_found = ht_lookup(table, &t2);
-    test_assert_true(not_found == NULL, "not_found == NULL", __FILE__,
-                     __LINE__);
+    test_assert_true(not_found == NULL, "not_found == NULL", __FILE__, __LINE__);
 
     ht_free(table);
 }
@@ -45,8 +44,7 @@ void test_ht_expansion(void) {
     // Insert 8: size 7 >= 6.4. EXPAND. size becomes 8.
 
     struct token tokens[10];
-    char* keys[] = {"k1", "k2", "k3", "k4", "k5",
-                    "k6", "k7", "k8", "k9", "k10"};
+    char* keys[] = {"k1", "k2", "k3", "k4", "k5", "k6", "k7", "k8", "k9", "k10"};
 
     for (int i = 0; i < 10; i++) {
         tokens[i].start_pos = keys[i];
@@ -54,8 +52,7 @@ void test_ht_expansion(void) {
         ht_insert(table, &tokens[i]);
     }
 
-    test_assert_true(table->capacity > 8, "table->capacity > 8", __FILE__,
-                     __LINE__);
+    test_assert_true(table->capacity > 8, "table->capacity > 8", __FILE__, __LINE__);
     test_assert_eq(10, (int)table->size, __FILE__, __LINE__);
 
     for (int i = 0; i < 10; i++) {
@@ -75,8 +72,7 @@ void test_ht_collision(void) {
     // perfectly or brute forcing. But we can test that multiple items work.
 
     struct token t1 = {.start_pos = "abc", .length = 3};
-    struct token t2 = {.start_pos = "acb",
-                       .length = 3}; // Likely different hash
+    struct token t2 = {.start_pos = "acb", .length = 3}; // Likely different hash
     struct token t3 = {.start_pos = "bac", .length = 3};
 
     ht_insert(table, &t1);
@@ -84,12 +80,9 @@ void test_ht_collision(void) {
     ht_insert(table, &t3);
 
     test_assert_eq(3, (int)table->size, __FILE__, __LINE__);
-    test_assert_true(ht_lookup(table, &t1) == &t1,
-                     "ht_lookup(table, &t1) == &t1", __FILE__, __LINE__);
-    test_assert_true(ht_lookup(table, &t2) == &t2,
-                     "ht_lookup(table, &t2) == &t2", __FILE__, __LINE__);
-    test_assert_true(ht_lookup(table, &t3) == &t3,
-                     "ht_lookup(table, &t3) == &t3", __FILE__, __LINE__);
+    test_assert_true(ht_lookup(table, &t1) == &t1, "ht_lookup(table, &t1) == &t1", __FILE__, __LINE__);
+    test_assert_true(ht_lookup(table, &t2) == &t2, "ht_lookup(table, &t2) == &t2", __FILE__, __LINE__);
+    test_assert_true(ht_lookup(table, &t3) == &t3, "ht_lookup(table, &t3) == &t3", __FILE__, __LINE__);
 
     ht_free(table);
 }

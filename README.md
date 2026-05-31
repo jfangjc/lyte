@@ -34,14 +34,14 @@ fn main(): s32 {
 
 ```text
 lyte/
-|-- cli/                    # CLI entry point
+|-- cli/                    # CLI entry point and command-line compilation flow
 |-- compiler/               # Core compiler library
 |   |-- common.h            # Shared token and type definitions
 |   |-- frontend/           # Parsing pipeline
 |   |   |-- source/         # Pre-lexer
 |   |   |-- lexer/          # Tokeniser
-|   |   |-- parser/         # Parser
-|   |   `-- ast/            # AST utilities
+|   |   |-- parser/         # Parser and AST node definitions
+|   |   `-- module/         # Module AST merging and export validation
 |   |-- middle/             # Semantic analysis
 |   |   |-- resolver/       # Dependency graph validation
 |   |   |-- linker/         # Module linking and export resolution

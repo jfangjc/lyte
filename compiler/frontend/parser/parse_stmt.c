@@ -1,5 +1,5 @@
-#include "parser_internal.h"
 #include "common.h"
+#include "parser_internal.h"
 
 #include <stdlib.h>
 
@@ -93,7 +93,7 @@ static struct if_stmt* parse_if_stmt(void) {
     if_stmt->if_body = parse_compound_stmt();
 
     struct elseif_stmt* elseif = NULL;
-    struct elseif_stmt* head   = NULL;
+    struct elseif_stmt* head = NULL;
     if_stmt->elseif_stmt = NULL;
     if_stmt->else_body = NULL;
 
@@ -103,7 +103,8 @@ static struct if_stmt* parse_if_stmt(void) {
             if (elseif == NULL) {
                 elseif = malloc(sizeof(struct elseif_stmt));
                 head = elseif;
-            } else {
+            }
+            else {
                 elseif->next = malloc(sizeof(struct elseif_stmt));
                 elseif = elseif->next;
             }
@@ -114,7 +115,8 @@ static struct if_stmt* parse_if_stmt(void) {
             expect(')');
             elseif->body = parse_compound_stmt();
             elseif->next = NULL;
-        } else {
+        }
+        else {
             if_stmt->elseif_stmt = head;
             if_stmt->else_body = parse_compound_stmt();
             return if_stmt;
@@ -139,13 +141,15 @@ static struct for_stmt* parse_for_stmt(void) {
             for_stmt->init->type = STMT_VAR;
             for_stmt->init->stmt.var_decl = parse_var_decl();
             for_stmt->init->next = NULL;
-        } else {
+        }
+        else {
             for_stmt->init = malloc(sizeof(struct stmt));
             for_stmt->init->type = STMT_EXPR;
             for_stmt->init->stmt.expr_stmt = parse_expr_stmt();
             for_stmt->init->next = NULL;
         }
-    } else {
+    }
+    else {
         expect(';');
     }
 

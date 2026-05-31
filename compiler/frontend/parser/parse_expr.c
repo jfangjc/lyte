@@ -1,6 +1,6 @@
-#include "parser_internal.h"
-#include "error.h"
 #include "common.h"
+#include "error.h"
+#include "parser_internal.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -15,15 +15,13 @@ static struct expr* parse_factor(void);
 static struct expr* parse_unary(void);
 static struct expr* parse_primary(void);
 
-struct expr* parse_expr(void) {
-    return parse_assignment();
-}
+struct expr* parse_expr(void) { return parse_assignment(); }
 
 static struct expr* parse_assignment(void) {
     struct expr* expr = parse_logic_or();
 
-    if (match(TOK_ASSIGN) || match(TOK_ADD_ASSIGN) || match(TOK_SUB_ASSIGN) ||
-        match(TOK_MUL_ASSIGN) || match(TOK_DIV_ASSIGN)) {
+    if (match(TOK_ASSIGN) || match(TOK_ADD_ASSIGN) || match(TOK_SUB_ASSIGN) || match(TOK_MUL_ASSIGN) ||
+        match(TOK_DIV_ASSIGN)) {
 
         if (expr->type != EXPR_ID) {
             error("Invalid assignment target");
@@ -163,11 +161,8 @@ static struct expr* parse_primary(void) {
         next();
     }
     else if (match(TOK_ID)) {
-        struct token* id = parse_id();
-        while (match('.')) {
-            next();
-            id = parse_id();
-        }
+        struct token* id = NULL;
+        char* name = parse_qualified_name(&id);
         while (match('[')) {
             next();
             parse_expr();
@@ -178,15 +173,19 @@ static struct expr* parse_primary(void) {
             expr->type = EXPR_CALL;
             expr->exprs.call_expr = malloc(sizeof(struct call_expr));
             expr->exprs.call_expr->id = id;
+            expr->exprs.call_expr->name = name;
             if (curr_token->type != ')') {
                 expr->exprs.call_expr->args = parse_arg_list();
-            } else {
+            }
+            else {
                 expr->exprs.call_expr->args = NULL;
             }
             expect(')');
-        } else {
+        }
+        else {
             expr->type = EXPR_ID;
             expr->exprs.id = id;
+            free(name);
         }
     }
     else if (match('(')) {
@@ -206,10 +205,9 @@ static struct expr* parse_primary(void) {
 
 // Argument list
 struct arg* parse_arg_list(void) {
-    struct arg* arg  = malloc(sizeof(struct arg));
+    struct arg* arg = malloc(sizeof(struct arg));
     struct arg* head = arg;
-    if (match(TOK_ID) && curr_token->length == 3 &&
-        strncmp(curr_token->start_pos, "out", 3) == 0) {
+    if (match(TOK_ID) && curr_token->length == 3 && strncmp(curr_token->start_pos, "out", 3) == 0) {
         next();
     }
     arg->value = parse_expr();
@@ -218,8 +216,7 @@ struct arg* parse_arg_list(void) {
         arg->next = malloc(sizeof(struct arg));
         arg = arg->next;
         expect(',');
-        if (match(TOK_ID) && curr_token->length == 3 &&
-            strncmp(curr_token->start_pos, "out", 3) == 0) {
+        if (match(TOK_ID) && curr_token->length == 3 && strncmp(curr_token->start_pos, "out", 3) == 0) {
             next();
         }
         arg->value = parse_expr();

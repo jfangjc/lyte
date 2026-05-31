@@ -11,7 +11,8 @@ void register_test(const char* name, test_func_t func) {
         tests[test_count].name = name;
         tests[test_count].func = func;
         test_count++;
-    } else {
+    }
+    else {
         fprintf(stderr, "Max tests reached!\n");
     }
 }

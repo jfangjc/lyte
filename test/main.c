@@ -2,13 +2,15 @@
 #include <stdio.h>
 
 // Test declarations
-void test_ast_free(void);
 void test_ht_basic(void);
 void test_ht_expansion(void);
 void test_ht_collision(void);
 void test_parser_fn_decl(void);
 void test_parser_var_decl(void);
 void test_parser_module_decl(void);
+void test_parser_import_decl(void);
+void test_parser_export_prefix_decl(void);
+void test_parser_export_block_decl(void);
 void test_scanner_basic(void);
 void test_scanner_keywords(void);
 void test_scanner_operators(void);
@@ -17,13 +19,15 @@ void test_scanner_strings(void);
 void test_pointers_parsing(void);
 
 int main(void) {
-    register_test("ast_free", test_ast_free);
     register_test("ht_basic", test_ht_basic);
     register_test("ht_expansion", test_ht_expansion);
     register_test("ht_collision", test_ht_collision);
     register_test("parser_fn_decl", test_parser_fn_decl);
     register_test("parser_var_decl", test_parser_var_decl);
     register_test("parser_module_decl", test_parser_module_decl);
+    register_test("parser_import_decl", test_parser_import_decl);
+    register_test("parser_export_prefix_decl", test_parser_export_prefix_decl);
+    register_test("parser_export_block_decl", test_parser_export_block_decl);
     register_test("scanner_basic", test_scanner_basic);
     register_test("scanner_keywords", test_scanner_keywords);
     register_test("scanner_operators", test_scanner_operators);

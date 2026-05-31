@@ -1,7 +1,6 @@
 #ifndef COMPILER_PARSER
 #define COMPILER_PARSER
 
-
 #include "lexer.h"
 
 struct type {
@@ -14,6 +13,7 @@ struct type {
 
 struct program_ast {
     struct token* module_name;
+    char* module_path;
     struct import_decl* imports;
     struct export_decl* exports;
     struct type_decl* type_decls;
@@ -26,6 +26,8 @@ struct fn_decl {
     struct param* params;
     struct stmt* body;
     struct type* type;
+    int is_exported;
+    int is_unsafe;
     struct fn_decl* next;
 };
 
@@ -34,11 +36,13 @@ struct var_decl {
     struct type* type;
     struct expr* value;
     int is_const;
+    int is_exported;
     struct var_decl* next;
 };
 
 struct import_decl {
     struct token* module_name;
+    char* module_path;
     struct token* alias;
     struct import_decl* next;
 };
@@ -51,6 +55,7 @@ struct export_decl {
 struct type_decl {
     struct token* name;
     struct type* alias;
+    int is_exported;
     struct type_decl* next;
 };
 
@@ -69,16 +74,7 @@ union stmts {
     struct expr_stmt* expr_stmt;
 };
 
-enum StmtType {
-    STMT_VAR,
-    STMT_IF,
-    STMT_FOR,
-    STMT_UNSAFE,
-    STMT_BREAK,
-    STMT_CONTINUE,
-    STMT_RETURN,
-    STMT_EXPR
-};
+enum StmtType { STMT_VAR, STMT_IF, STMT_FOR, STMT_UNSAFE, STMT_BREAK, STMT_CONTINUE, STMT_RETURN, STMT_EXPR };
 
 struct stmt {
     enum StmtType type;
@@ -129,16 +125,7 @@ struct expr_stmt {
     struct expr* expr;
 };
 
-enum ExprType {
-    EXPR_ASSIGN,
-    EXPR_BOOLEAN,
-    EXPR_EQUALITY,
-    EXPR_ARITH,
-    EXPR_UNARY,
-    EXPR_CALL,
-    EXPR_ID,
-    EXPR_VALUE
-};
+enum ExprType { EXPR_ASSIGN, EXPR_BOOLEAN, EXPR_EQUALITY, EXPR_ARITH, EXPR_UNARY, EXPR_CALL, EXPR_ID, EXPR_VALUE };
 
 struct expr {
     enum ExprType type;
@@ -176,6 +163,7 @@ struct unary_expr {
 
 struct call_expr {
     struct token* id;
+    char* name;
     struct arg* args;
 };
 

@@ -1,8 +1,8 @@
 #include "module_index.h"
 #include "error.h"
+#include "file.h"
 
 #include <ctype.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -16,48 +16,6 @@ static char* duplicate_str(const char* value) {
     }
     memcpy(copy, value, len);
     return copy;
-}
-
-static char* read_source_for_index(const char* path) {
-    FILE* file = NULL;
-#ifdef _MSC_VER
-    fopen_s(&file, path, "r");
-#else
-    file = fopen(path, "r");
-#endif
-
-    if (file == NULL) {
-        error("File does not exist.");
-    }
-
-    fseek(file, 0, SEEK_END);
-    long raw_size = ftell(file);
-    fseek(file, 0, SEEK_SET);
-
-    if (raw_size < 0) {
-        fclose(file);
-        error("Unable to read file.");
-    }
-
-    size_t size = (size_t)raw_size;
-    char* content = malloc(size + 1);
-    if (content == NULL) {
-        fclose(file);
-        error("Out of memory");
-    }
-
-    if (size > 0) {
-        size_t read_count = fread(content, 1, size, file);
-        if (read_count != size) {
-            free(content);
-            fclose(file);
-            error("Unable to read file.");
-        }
-    }
-
-    content[size] = '\0';
-    fclose(file);
-    return content;
 }
 
 static void skip_ws_and_comments(const char** cursor) {
@@ -78,13 +36,9 @@ static void skip_ws_and_comments(const char** cursor) {
     }
 }
 
-static int is_ident_start(char c) {
-    return isalpha((unsigned char)c) || c == '_';
-}
+static int is_ident_start(char c) { return isalpha((unsigned char)c) || c == '_'; }
 
-static int is_ident_continue(char c) {
-    return isalnum((unsigned char)c) || c == '_';
-}
+static int is_ident_continue(char c) { return isalnum((unsigned char)c) || c == '_'; }
 
 static int scan_word(const char** cursor, const char* expected) {
     size_t len = strlen(expected);
@@ -109,7 +63,7 @@ static void append_module_part(char* buffer, size_t buffer_size, size_t* length,
 }
 
 static char* get_module_name(const char* path) {
-    char* source = read_source_for_index(path);
+    char* source = read_file_contents(path);
     const char* cursor = source;
     char name[MODULE_NAME_BUF_SIZE];
     size_t name_len = 0;
@@ -151,7 +105,7 @@ static char* get_module_name(const char* path) {
     return duplicate_str(name);
 }
 
-static struct module_group* find_module(struct module_groups* groups,  const char* name) {
+static struct module_group* find_module(struct module_groups* groups, const char* name) {
     struct module_group* group = groups->modules;
     while (group != NULL) {
         if (strcmp(group->name, name) == 0) {

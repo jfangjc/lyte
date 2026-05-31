@@ -45,20 +45,21 @@ endif()
 
 # Compiler Library Sources
 file(GLOB_RECURSE COMPILER_SRC_FILES "${CMAKE_SOURCE_DIR}/compiler/*.c")
+file(GLOB_RECURSE CLI_SRC_FILES "${CMAKE_SOURCE_DIR}/cli/*.c")
 
 # Include Directories
 include_directories(
     ${CMAKE_SOURCE_DIR}/compiler
     ${CMAKE_SOURCE_DIR}/compiler/frontend/source
+    ${CMAKE_SOURCE_DIR}/compiler/frontend/module
     ${CMAKE_SOURCE_DIR}/compiler/frontend/lexer
     ${CMAKE_SOURCE_DIR}/compiler/frontend/parser
-    ${CMAKE_SOURCE_DIR}/compiler/frontend/ast
     ${CMAKE_SOURCE_DIR}/compiler/backend/codegen
     ${CMAKE_SOURCE_DIR}/compiler/utils
 )
 
 # Main Executable (CLI)
-add_executable(${PROJECT_NAME} cli/main.c ${COMPILER_SRC_FILES})
+add_executable(${PROJECT_NAME} ${CLI_SRC_FILES} ${COMPILER_SRC_FILES})
 
 install(TARGETS ${PROJECT_NAME} DESTINATION ${CMAKE_BINARY_DIR})
 

@@ -1,20 +1,21 @@
-# Types and Modules
-module geometry.circle
+module geometry.circle;
 
-export type Circle = {
+export { transparent Circle, create, area, perimeter }
+
+type Circle = {
     x: f32,
     y: f32,
     r: f32,
 }
 
-export fn new(x: f32, y: f32, r: f32, out circle: Circle): s32 {
-    return 0;
+fn create(let x: f32, let y: f32, let r: f32): Circle {
+    return Circle { x: x, y: y, r: r };
 }
 
-export fn area(circle: Circle): f32 {
+fn area(let circle: &Circle): f32 {
     return 3.14159 * circle.r * circle.r;
 }
 
-export fn perimeter(circle: Circle): f32 {
+fn perimeter(let circle: &Circle): f32 {
     return 2.0 * 3.14159 * circle.r;
 }

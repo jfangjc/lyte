@@ -1,63 +1,69 @@
 #include "keywords.h"
 #include "common.h"
-#include "ht.h"
 
 #include <string.h>
 
 struct keyword_entry {
-    const char* name;
+    char* name;
     int len;
     int tok_type;
 };
 
-#define KEYWORD_TABLE_SIZE 32
-#define KEYWORD_TABLE_MASK (KEYWORD_TABLE_SIZE - 1)
-
-static struct keyword_entry keyword_table[KEYWORD_TABLE_SIZE];
-static int keyword_table_initialised = 0;
-
+// Keep entries sorted lexicographically for binary search.
 static const struct keyword_entry keyword_list[] = {
-    {"break", 5, TOK_BREAK},   {"const", 5, TOK_CONST},   {"continue", 8, TOK_CONTINUE}, {"else", 4, TOK_ELSE},
-    {"export", 6, TOK_EXPORT}, {"fn", 2, TOK_FN},         {"for", 3, TOK_FOR},           {"if", 2, TOK_IF},
-    {"import", 6, TOK_IMPORT}, {"module", 6, TOK_MODULE}, {"return", 6, TOK_RETURN},     {"type", 4, TOK_TYPE},
-    {"unsafe", 6, TOK_UNSAFE}, {"var", 3, TOK_VAR},
+    {"as", 2, TOK_AS},
+    {"break", 5, TOK_BREAK},
+    {"continue", 8, TOK_CONTINUE},
+    {"else", 4, TOK_ELSE},
+    {"export", 6, TOK_EXPORT},
+    {"false", 5, TOK_FALSE},
+    {"fn", 2, TOK_FN},
+    {"for", 3, TOK_FOR},
+    {"from", 4, TOK_FROM},
+    {"heap", 4, TOK_HEAP},
+    {"if", 2, TOK_IF},
+    {"import", 6, TOK_IMPORT},
+    {"let", 3, TOK_LET},
+    {"match", 5, TOK_MATCH},
+    {"module", 6, TOK_MODULE},
+    {"mut", 3, TOK_MUT},
+    {"new", 3, TOK_NEW},
+    {"return", 6, TOK_RETURN},
+    {"take", 4, TOK_TAKE},
+    {"transparent", 11, TOK_TRANSPARENT},
+    {"true", 4, TOK_TRUE},
+    {"type", 4, TOK_TYPE},
+    {"unsafe", 6, TOK_UNSAFE},
+    {"var", 3, TOK_VAR},
 };
 
-static const int keyword_count = (int)(sizeof(keyword_list) / sizeof(keyword_list[0]));
-
-static void keyword_table_init(void) {
-    for (int i = 0; i < keyword_count; i++) {
-        unsigned int index = hash((char*)keyword_list[i].name, keyword_list[i].len) & KEYWORD_TABLE_MASK;
-        while (keyword_table[index].name != NULL) {
-            index = (index + 1) & KEYWORD_TABLE_MASK;
-        }
-        keyword_table[index] = keyword_list[i];
-    }
-    keyword_table_initialised = 1;
-}
-
 int keyword_lookup(const char* text, int length) {
-    if (!keyword_table_initialised) {
-        keyword_table_init();
-    }
-
-    if (length < 2 || length > 8) {
+    if (length < 2 || length > 11) {
         return TOK_ID;
     }
 
-    unsigned int index = hash((char*)text, length) & KEYWORD_TABLE_MASK;
+    // Use binary search to match keyword
+    int low = 0;
+    int high = 24; // total number of keyword
+    while (low < high) {
+        int mid = low + (high - low) / 2;
+        const struct keyword_entry* entry = &keyword_list[mid];
 
-    while (1) {
-        const struct keyword_entry* entry = &keyword_table[index];
-
-        if (entry->name == NULL) {
-            return TOK_ID;
+        int cmp = memcmp(text, entry->name, (size_t)(length < entry->len ? length : entry->len));
+        if (cmp == 0) {
+            cmp = length - entry->len;
+            if (cmp == 0) {
+                return entry->tok_type;
+            }
         }
 
-        if (entry->len == length && memcmp(text, entry->name, (size_t)length) == 0) {
-            return entry->tok_type;
+        if (cmp < 0) {
+            high = mid;
         }
-
-        index = (index + 1) & KEYWORD_TABLE_MASK;
+        else {
+            low = mid + 1;
+        }
     }
+
+    return TOK_ID;
 }

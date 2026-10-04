@@ -18,7 +18,9 @@ static int is_top_level_start(void);
 
 struct token* curr_token;
 
-void next(void) { curr_token = next_token(); }
+void next(void) {
+    curr_token = next_token();
+}
 
 void expect(int type) {
     if (curr_token == NULL) {
@@ -118,7 +120,7 @@ struct program_ast* parse_program(void) {
             *type = parse_type_decl();
             type = &((*type)->next);
         }
-        else if (match(TOK_VAR) || match(TOK_CONST)) {
+        else if (match(TOK_VAR) || match(TOK_LET)) {
             *var = parse_var_decl();
             var = &((*var)->next);
         }
@@ -187,7 +189,7 @@ static struct import_decl* parse_import_decl(void) {
     import->module_path = parse_qualified_name(&import->module_name);
 
     import->alias = NULL;
-    if (match(TOK_ID) && curr_token->length == 2 && strncmp(curr_token->start_pos, "as", 2) == 0) {
+    if (match(TOK_AS)) {
         next();
         import->alias = parse_id();
     }
@@ -218,7 +220,7 @@ static void parse_exported_decl(struct fn_decl*** fn, struct export_decl*** expo
         **fn = parse_fn_decl_with_optional_unsafe(1);
         *fn = &((**fn)->next);
     }
-    else if (match(TOK_VAR) || match(TOK_CONST)) {
+    else if (match(TOK_VAR) || match(TOK_LET)) {
         **var = parse_var_decl();
         (**var)->is_exported = 1;
         *var = &((**var)->next);
@@ -267,7 +269,7 @@ static struct type_decl* parse_type_decl(void) {
                 next();
             } while (curr_token != NULL && depth > 0);
         }
-        else if (match(TOK_ID) || match('*') || match('&') || match(TOK_CONST)) {
+        else if (match(TOK_ID) || match('*') || match('&')) {
             type->alias = parse_type();
         }
         else {
@@ -282,16 +284,16 @@ static struct type_decl* parse_type_decl(void) {
 
 static int is_top_level_start(void) {
     return match(TOK_MODULE) || match(TOK_IMPORT) || match(TOK_EXPORT) || match(TOK_TYPE) || match(TOK_FN) ||
-           match(TOK_CONST) || match(TOK_VAR) || match(TOK_UNSAFE) || match('@');
+           match(TOK_LET) || match(TOK_VAR) || match(TOK_UNSAFE) || match('@');
 }
 
 struct var_decl* parse_var_decl(void) {
     struct var_decl* var = malloc(sizeof(struct var_decl));
 
-    var->is_const = match(TOK_CONST);
+    var->is_const = match(TOK_LET);
     var->is_exported = 0;
     if (var->is_const) {
-        expect(TOK_CONST);
+        expect(TOK_LET);
     }
     else {
         expect(TOK_VAR);
@@ -362,10 +364,6 @@ struct expr* parse_initialiser(void) {
 
 // Type
 struct type* parse_type(void) {
-    if (match(TOK_CONST)) {
-        next();
-        return parse_type();
-    }
     if (match('*')) {
         next();
         struct type* type = malloc(sizeof(struct type));

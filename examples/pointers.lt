@@ -1,17 +1,22 @@
-# Pointers
-module app.pointers
+module app.pointers;
 
-unsafe fn copyValue(src: *s32, dst: s32): s32 {
-    dst = *src;
-    return 0;
+# Checked references read and write the caller's storage.
+fn copy_value(let source: &s32, let destination: &mut s32): void {
+    *destination = *source;
 }
 
-unsafe fn main(): s32 {
-    var x: s32 = 10;
-    var y: s32 = 0;
-    var px: *s32 = &x;
+# The caller must provide live, aligned, initialized storage. The source must
+# be readable and the destination writable, without conflicting active loans.
+unsafe fn copy_raw(let source: *s32, let destination: *s32): void {
+    unsafe {
+        *destination = *source;
+    }
+}
 
-    copyValue(px, y);
+fn main(): s32 {
+    let source: s32 = 10;
+    var destination: s32 = 0;
 
-    return y;
+    copy_value(&source, &mut destination);
+    return destination;
 }

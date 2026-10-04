@@ -1,10 +1,18 @@
-# Imports
-module app.main
+module app.imports;
 
-import platform.io as io
-import platform.fs as fs
+import geometry.circle as circle;
+import std.option { Option, Some, None };
 
 fn main(): s32 {
-    io.print("starting");
-    return 0;
+    let shape = circle.create(0.0, 0.0, 1.0);
+    let area = circle.area(&shape);
+    if area <= 0.0 {
+        return 1;
+    }
+
+    let supplied: Option<s32> = Some(7);
+    match supplied {
+        Some(let value) => { return value; }
+        None => { return 0; }
+    }
 }

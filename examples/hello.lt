@@ -1,5 +1,6 @@
-# Hello World
-module app.main
+module app.main;
+
+# Minimal entry function.
 
 fn main(): s32 {
     return 0;

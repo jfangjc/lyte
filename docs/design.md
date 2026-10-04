@@ -1,144 +1,63 @@
-# Language design
+# Lyte language specification
 
-The language is a **function-first, module-isolated systems language**.
+These pages define Lyte's first borrow-checked version. The compiler implements
+an earlier subset. Examples show intended behavior and may omit modules and
+imports. `# error` marks rejected code.
 
-The main idea is **Functions define behavior. Modules isolate code. Exports define contracts. Everything else is private.**
+## Language rules
 
-# Project model
+Read in order, or use the rule index below.
 
-A project contains source tree and build manifest
+| Topic                                | Rules                                                                        |
+| ------------------------------------ | ---------------------------------------------------------------------------- |
+| [Syntax and bindings](syntax.md)     | Source files, keywords, `let` and `var`, initialization, constants           |
+| [Types and collections](types.md)    | Numbers, records, sums, aliases, generics, arrays, slices, literals          |
+| [Modules and imports](modules.md)    | Namespaces, opaque records, sum constructors, exports, imports               |
+| [Functions](functions.md)            | Parameter bindings, borrowing, consuming calls                               |
+| [Control flow](control-flow.md)      | Evaluation order, conditions, loops, returns, sum matching                   |
+| [Ownership and borrowing](memory.md) | Copy, `take`, heap storage, loans, reborrowing, returned references, cleanup |
+| [Error handling](errors.md)          | Mandatory Result handling, forwarding, nested Results                        |
+| [Safety](safety.md)                  | Safe-by-default blocks, `unsafe`, runtime traps, compiler guarantees         |
 
-The project manifest should describes:
-- source directories
-- entry function
-- compiler options
-- formater/linter rule
+## Standard library and version scope
 
-# Module model
+Standard-library names require explicit `std.*` imports. Selected declarations
+have compiler-checked rules.
 
-A module is similar to namespace
+| Topic                                                 | Rules                                                              |
+| ----------------------------------------------------- | ------------------------------------------------------------------ |
+| [Standard library](standard-library.md)               | Modules, declarations, and operation contracts                     |
+| [Version limits and implementation status](limits.md) | Excluded features, undefined rules, runtime costs, compiler status |
 
-Example:
-```
-module app.user
-```
+## Find a rule
 
-Anything `export` is visible outside the module, otherwise private to the module.
+| Syntax or concept                                   | Reference                                                              |
+| --------------------------------------------------- | ---------------------------------------------------------------------- |
+| `let`, `var`, initialization                        | [Bindings](syntax.md#bindings)                                         |
+| Compile-time `let`                                  | [Constant expressions](syntax.md#constant-expressions)                 |
+| Records, sums, aliases                              | [Type declarations](types.md#records-sums-and-aliases)                 |
+| `import`, `export`, `transparent`                   | [Modules and imports](modules.md)                                      |
+| Parameter modes and consuming calls                 | [Parameters](functions.md#parameters)                                  |
+| Evaluation order                                    | [Evaluation order](control-flow.md#evaluation-order)                   |
+| `if`, `for`, `return`, `break`, `continue`          | [Control flow](control-flow.md)                                        |
+| `match`, sum payloads                               | [Matching](control-flow.md#match)                                      |
+| `&T`, `&mut T`, inferred borrows                    | [Borrow expressions](memory.md#borrow-expressions)                     |
+| Reference aliasing and last use                     | [Loan conflicts](memory.md#loan-conflicts)                             |
+| `second = writer`                                   | [Reborrowing](memory.md#reborrowing)                                   |
+| `from`, lifetime relationships                      | [Returned references](memory.md#returned-references)                   |
+| `take`, `Copy`                                      | [Ownership](memory.md#ownership-and-copying)                           |
+| `heap`, `new`                                       | [Heap storage](memory.md#heap-storage)                                 |
+| `extract`, `exchange`, `drop`                       | [Memory operations](standard-library.md#memory-operations)             |
+| `Option`, `Some`, `None`                            | [Option](standard-library.md#option)                                   |
+| `Result`, `Ok`, `Err`                               | [Result](standard-library.md#result)                                   |
+| Result obligations                                  | [Error handling](errors.md#handling-results)                           |
+| `convert<T>`                                        | [Numeric conversions](standard-library.md#numeric-conversions)         |
+| Text literals                                       | [Literal types](types.md#text-literals)                                |
+| `String` and text functions                         | [UTF-8 text](standard-library.md#utf-8-text)                           |
+| `unsafe`, `*T`, block permissions                   | [Unsafe blocks](safety.md#unsafe-blocks)                               |
+| `unsafe fn`, caller requirements, module invariants | [Safety contracts](safety.md#function-contracts-and-module-invariants) |
+| Runtime failures                                    | [Runtime traps](safety.md#runtime-traps)                               |
+| Unsupported features                                | [Version limits](limits.md#excluded-features)                          |
 
-There are only two visibility levels:
-- exported: visible outside the module
-- default: private to the module
-
-**Files have no visibility meaning.**
-
-A module may span many files.
-
-```
-src/app/user/mod.lt
-src/app/user/find.lt
-src/app/user/create.lt
-src/app/user/validate.lt
-```
-
-Each file says:
-
-``` ts
-module app.user
-```
-
-All files with the same module name share the same private namespace.
-
-So this is valid:
-
-```
-# parse.lt
-module app.config
-
-fn parse(bytes: Bytes, out config: Config): Status {
-    ...
-}
-```
-
-```
-# load.lt
-module app.config
-
-fn load(path: Path, out config: Config): Status {
-    var bytes: Bytes
-
-    readBytes(path, out bytes)!
-    parse(bytes, out config)!
-
-    return OK
-}
-```
-
-`load` can call `parse` because both are inside module `app.config`.
-
-# Functions are the only behavior unit
-
-All behavior is written as functions.
-
-```
-fn findById(id: UserId, out user: User): Status {
-    ...
-}
-```
-
-# Custom type
-
-Use `type` for all data definitions.
-
-Records:
-
-```
-type User = {
-    id: UserId,
-    email: Email,
-    passwordHash: Bytes,
-}
-```
-
-Sum types:
-
-```
-type LoginState =
-    | LoggedOut
-    | LoggedIn(UserId)
-    | Locked(Time)
-```
-
-Aliases:
-
-```
-type Status = s32
-type UserId = u64
-```
-
-# Memory model
-
-Safe code is enable to use of reference.
-
-Unsafe function allows explicit memory managment and raw pointers.
-
-Safe public functions may use unsafe internally if they uphold the invariants.
-
-# Minimal keyword set
-
-Keyword set:
-``` text
-module
-export
-import
-type
-fn
-const
-var
-return
-if
-else
-for
-continue
-break
-unsafe
-```
+See the README for the [compiler overview](../README.md#compiler-overview)
+and [build instructions](../README.md#getting-started).

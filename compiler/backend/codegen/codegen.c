@@ -110,7 +110,7 @@ static void map_type_str(struct type* type, char* buffer, size_t size) {
     else if (type_name_is(type, "s16") || type_name_is(type, "u16")) {
         copy_str(buffer, size, "i16");
     }
-    else if (type_name_is(type, "s32") || type_name_is(type, "u32")) {
+    else if (type_name_is(type, "s32") || type_name_is(type, "u32") || type_name_is(type, "char")) {
         copy_str(buffer, size, "i32");
     }
     else if (type_name_is(type, "s64") || type_name_is(type, "u64")) {
@@ -137,6 +137,29 @@ static void map_type_str(struct type* type, char* buffer, size_t size) {
 void gen_stmt(struct stmt* stmt);
 void gen_compound_stmt(struct stmt* stmts);
 void gen_expr(struct expr* expr, char* out_reg, size_t out_size);
+
+// Character literal tokens have already been validated by the lexer.
+static unsigned int char_literal_value(const struct token* token) {
+    const unsigned char* text = (const unsigned char*)token->start_pos + 1;
+    if (*text == '\\') {
+        switch (text[1]) {
+        case 'n': return '\n';
+        case 'r': return '\r';
+        case 't': return '\t';
+        case '0': return 0;
+        default: return text[1];
+        }
+    }
+    if (*text < 0x80) {
+        return *text;
+    }
+    int length = token->length - 2;
+    unsigned int codepoint = *text & (0x7Fu >> length);
+    for (int i = 1; i < length; i++) {
+        codepoint = (codepoint << 6) | (text[i] & 0x3Fu);
+    }
+    return codepoint;
+}
 
 // Generates LLVM IR for expressions
 // The result is stored in the register specified by out_reg
@@ -269,7 +292,11 @@ void gen_expr(struct expr* expr, char* out_reg, size_t out_size) {
     }
     case EXPR_VALUE: {
         struct token* tok = expr->exprs.value_expr;
-        snprintf(out_reg, out_size, "%.*s", tok->length, tok->start_pos);
+        if (tok->type == TOK_CHAR) {
+            snprintf(out_reg, out_size, "%u", char_literal_value(tok));
+        } else {
+            snprintf(out_reg, out_size, "%.*s", tok->length, tok->start_pos);
+        }
         break;
     }
     case EXPR_ID: {

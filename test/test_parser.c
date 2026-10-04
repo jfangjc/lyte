@@ -1,11 +1,43 @@
 #include "common.h"
+#include "codegen.h"
 #include "framework.h"
 #include "lexer.h"
 #include "parser.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "test_utils.h"
+
+void test_parser_char_literal(void) {
+    create_temp_file("test_char.lt", "fn character(): char { return '\xF0\x9F\x98\x80'; }\n"
+                                     "fn escaped(): char { return '\\''; }\n"
+                                     "fn newline(): char { return '\\n'; }\n"
+                                     "fn nul(): char { return '\\0'; }\n"
+                                     "fn two_bytes(): char { return '\xC3\xA9'; }\n"
+                                     "fn three_bytes(): char { return '\xE4\xB8\xAD'; }\n"
+                                     "fn ascii(): char { let c: char = 'a'; return c; }");
+    char* content = read_file("test_char.lt");
+    struct program_ast* prog = parse_program();
+    struct expr* value = prog->fn_decls->body->stmt.return_stmt->expr;
+    test_assert_eq(EXPR_VALUE, (int)value->type, __FILE__, __LINE__);
+    test_assert_eq(TOK_CHAR, value->exprs.value_expr->type, __FILE__, __LINE__);
+    gen("test_char.ll", prog);
+    FILE* output = fopen("test_char.ll", "r");
+    test_assert_true(output != NULL, "generated character IR exists", __FILE__, __LINE__);
+    char ir[4096];
+    size_t size = fread(ir, 1, sizeof(ir) - 1, output);
+    ir[size] = '\0';
+    fclose(output);
+    const char* expected[] = {"ret i32 128512", "ret i32 39", "ret i32 10", "ret i32 0",
+                              "ret i32 233", "ret i32 20013", "store i32 97"};
+    for (size_t i = 0; i < sizeof(expected) / sizeof(expected[0]); i++) {
+        test_assert_true(strstr(ir, expected[i]) != NULL, expected[i], __FILE__, __LINE__);
+    }
+    free(content);
+    remove("test_char.lt");
+    remove("test_char.ll");
+}
 
 void test_parser_fn_decl(void) {
     create_temp_file("test_fn.lt", "fn main(): s32 { return 0; }");
@@ -51,6 +83,18 @@ void test_parser_var_decl(void) {
     remove("test_var.lt");
 }
 
+void test_parser_let_decl(void) {
+    create_temp_file("test_let.lt", "let limit: s32 = 10; fn main(): s32 { let value = limit; return value; }");
+    read_file("test_let.lt");
+    struct program_ast* prog = parse_program();
+    test_assert_true(prog->var_decls != NULL, "module let declaration exists", __FILE__, __LINE__);
+    test_assert_eq(1, prog->var_decls->is_const, __FILE__, __LINE__);
+    struct var_decl* local = prog->fn_decls->body->stmt.var_decl;
+    test_assert_true(local != NULL, "local let declaration exists", __FILE__, __LINE__);
+    test_assert_eq(1, local->is_const, __FILE__, __LINE__);
+    remove("test_let.lt");
+}
+
 void test_parser_module_decl(void) {
     create_temp_file("test_module.lt", "module app.main\nfn main(): s32 { var x: s32 = 42; }");
     read_file("test_module.lt");
@@ -91,7 +135,7 @@ void test_parser_export_prefix_decl(void) {
                                               "export type Circle = {\n"
                                               "    x: f32,\n"
                                               "}\n"
-                                              "export fn new(): s32 { return 0; }\n"
+                                              "export fn create(): s32 { return 0; }\n"
                                               "export unsafe fn raw(): s32 { return 0; }");
     read_file("test_export_prefix.lt");
 

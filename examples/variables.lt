@@ -1,15 +1,15 @@
-# Variables and Arithmetic
-module app.variables
+module app.variables;
+
+# A typed module-level let is a compile-time constant.
+let max_size: u64 = 1024;
 
 fn main(): s32 {
-    var x: s32 = 10;
-    var y: s32 = 20;
-    var sum: s32 = x + y;
-    var diff: s32 = x - y;
-    var product: s32 = x * y;
-    var quotient: s32 = y / x;
-
-    const maxSize: u64 = 1024;
+    let x: s32 = 10;
+    let y: s32 = 20;
+    let sum = x + y;
+    let diff = x - y;
+    let product = x * y;
+    let quotient = y / x;
 
     var counter: s32 = 0;
     counter += 1;

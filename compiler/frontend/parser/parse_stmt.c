@@ -40,7 +40,7 @@ struct stmt* parse_stmt(void) {
 
     switch (curr_token->type) {
     case TOK_VAR:
-    case TOK_CONST:
+    case TOK_LET:
         stmt->type = STMT_VAR;
         stmt->stmt.var_decl = parse_var_decl();
         break;
@@ -136,7 +136,7 @@ static struct for_stmt* parse_for_stmt(void) {
     for_stmt->step = NULL;
 
     if (!match(';')) {
-        if (match(TOK_VAR) || match(TOK_CONST)) {
+        if (match(TOK_VAR) || match(TOK_LET)) {
             for_stmt->init = malloc(sizeof(struct stmt));
             for_stmt->init->type = STMT_VAR;
             for_stmt->init->stmt.var_decl = parse_var_decl();

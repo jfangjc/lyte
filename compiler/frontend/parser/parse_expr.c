@@ -155,7 +155,7 @@ static struct expr* parse_unary(void) {
 static struct expr* parse_primary(void) {
     struct expr* expr = malloc(sizeof(struct expr));
 
-    if (match(TOK_INT) || match(TOK_FLOAT) || match(TOK_STRING)) {
+    if (match(TOK_INT) || match(TOK_FLOAT) || match(TOK_STRING) || match(TOK_CHAR)) {
         expr->type = EXPR_VALUE;
         expr->exprs.value_expr = curr_token;
         next();

@@ -1,73 +1,98 @@
-<p align="center">
-    <img src="assets/logo.png" alt="Lyte logo" style="width:65%">
-    <br/>
-    Uncompromised Hardware Control. Strictly Enforced Modularity.
-    <br/>
-    <br/>
-</p>
+# Lyte
 
----
+Lyte is a statically typed systems language with records, sums, free functions,
+explicit modules, unique owners, and checked borrowing.
 
-# The Lyte Programming Language
-
-Lyte is a statically typed, ahead-of-time (AOT) compiled systems language. It uses function-first behavior, module isolation, explicit exports, and explicit unsafe blocks.
+- `let` fixes a binding; `var` allows reassignment and mutation of owned data.
+- `&T` borrows for reading; `&mut T` borrows for writing; `take(value)` transfers ownership.
+- `match` handles sum types, including `Option` and `Result`. Every Result must be handled or forwarded.
+- Blocks are safe by default. Unsafe operations require an explicit `unsafe` block.
+- Fixed arrays, borrowed slices, and UTF-8 text are supported by the design.
+  Standard-library names require explicit `std.*` imports. Comments start with `#`.
 
 ```lyte
-module app.main
+module app.main;
 
 fn main(): s32 {
     return 0;
 }
 ```
 
-> **The Lyte compiler is still very early in development.**
+The compiler implements an earlier subset without ownership or borrow checking.
+This example and the specification describe the target language.
 
-## Key Principles
+## Getting started
 
-- **Function-first behavior**: behavior is defined with `fn`, not methods or classes.
-- **Module isolation**: modules define namespace and privacy boundaries.
-- **Explicit exports**: public module contracts are listed in `export`.
-- **Minimal keyword set**: syntax vocabulary is small and stable.
-- **Unsafe is explicit**: low-level operations require `unsafe`.
+You need CMake 3.10+, GCC or Clang, and Make or Ninja.
+With Nix flakes enabled, get these tools with:
 
-## Project Structure
+```bash
+nix develop
+```
 
-```text
-lyte/
-|-- cli/                    # CLI entry point and command-line compilation flow
-|-- compiler/               # Core compiler library
-|   |-- common.h            # Shared token and type definitions
-|   |-- frontend/           # Parsing pipeline
-|   |   |-- source/         # Pre-lexer
-|   |   |-- lexer/          # Tokeniser
-|   |   |-- parser/         # Parser and AST node definitions
-|   |   `-- module/         # Module AST merging and export validation
-|   |-- middle/             # Semantic analysis
-|   |   |-- resolver/       # Dependency graph validation
-|   |   |-- linker/         # Module linking and export resolution
-|   |   |-- scope/          # Module privacy validation
-|   |   `-- types/          # Type checking
-|   |-- backend/            # Code generation
-|   |   `-- codegen/        # Emits LLVM IR from the AST
-|   `-- utils/              # Shared utilities
-|-- docs/                   # Language specification and documentation
-`-- test/                   # Unit test suite
+Build from the repository root:
+
+```bash
+cmake -S . -B build
+cmake --build build
+```
+
+Run the compiler with one or more `.lt` source files:
+
+```bash
+./build/lyte path/to/main.lt
+```
+
+Each file must declare its module. Output is textual LLVM IR in `.s` files,
+not a complete native executable.
+
+Run the unit tests:
+
+```bash
+./build/unit_test
 ```
 
 ## Documentation
 
-#### [Getting Started](docs/get-started.md)
-Instructions for building the compiler and running tests.
+- [Specification index](docs/design.md)
+- [Compiler overview](#compiler-overview)
+- [Language examples](examples/README.md)
 
-#### [Language Specification](docs/design.md)
-The Lyte language specification, module model, type model, and keyword set.
+## Compiler overview
 
-#### [Types Reference](docs/types.md)
-Built-in type names and pointer syntax.
+```text
+.lt files -> module grouping -> lexer -> parser -> module merge
+          -> export-name validation -> textual LLVM IR
+```
 
-#### [Project Overview](docs/overview.md)
-Compiler architecture and project structure details.
+[`cli/compile.c`](cli/compile.c) runs this pipeline.
+[`compiler/common.h`](compiler/common.h) defines shared tokens.
+The test suite covers the lexer, parser, module/export parsing, pointers, hash
+tables, and character literal code generation.
 
-## Warnings
+Name resolution, type checking, definite initialization, ownership analysis,
+and borrow checking are still missing. They need a typed control-flow
+representation that preserves storage locations, binding and reference
+permissions, consuming modes, `from` contracts, and explicit block safety.
+There is no `compiler/middle/` implementation yet.
 
-**The Lyte compiler is still very early in development.**
+Code generation still needs complete control flow, target-aware types, checked
+arithmetic and indexing, and cleanup. The heap runtime also needs implementation.
+Parser tests alone do not establish memory safety. Add tests for accepted and
+rejected programs, emitted IR, and generated program execution.
+The [examples](examples/README.md) are not all supported yet.
+
+## Repository
+
+| Directory                   | Contents                                                   |
+| --------------------------- | ---------------------------------------------------------- |
+| `cli/`                      | Compiler command-line entry point and compilation pipeline |
+| `compiler/frontend/source/` | Groups input files by explicit module declaration          |
+| `compiler/frontend/lexer/`  | Produces tokens                                            |
+| `compiler/frontend/parser/` | Builds the current syntax tree                             |
+| `compiler/frontend/module/` | Merges declarations and validates export names             |
+| `compiler/backend/codegen/` | Emits early LLVM IR                                        |
+| `compiler/utils/`           | File, error, and hash-table helpers                        |
+| `test/`                     | Compiler unit tests                                        |
+| `examples/`                 | Examples for the current language specification            |
+| `docs/`                     | Language specification                                     |

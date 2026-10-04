@@ -1,33 +1,43 @@
-# Control Flow
-module app.control
+module app.control;
 
-fn abs(n: s32): s32 {
-    if (n < 0) {
+type State =
+    | Idle
+    | Running(s32);
+
+fn abs(let n: s32): s32 {
+    if n < 0 {
         return -n;
     }
     return n;
 }
 
-fn max(a: s32, b: s32): s32 {
-    if (a > b) {
+fn max(let a: s32, let b: s32): s32 {
+    if a > b {
         return a;
-    }
-    else {
+    } else {
         return b;
     }
 }
 
-fn factorial(n: s32): s32 {
+fn factorial(let n: s32): s32 {
     var result: s32 = 1;
-    for var i: s32 = 1; i <= n; i = i + 1 {
-        result = result * i;
+    for var i: s32 = 1; i <= n; i += 1 {
+        result *= i;
     }
     return result;
 }
 
+fn state_value(let state: State): s32 {
+    match state {
+        Idle => { return 0; }
+        Running(let count) => { return count; }
+    }
+}
+
 fn main(): s32 {
-    var x: s32 = abs(-42);
-    var m: s32 = max(10, 20);
-    var f: s32 = factorial(5);
-    return x + m + f;
+    let x = abs(-42);
+    let m = max(10, 20);
+    let f = factorial(5);
+    let state: State = Running(f);
+    return x + m + state_value(state);
 }

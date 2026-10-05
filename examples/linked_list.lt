@@ -1,0 +1,36 @@
+module app.linked_list;
+
+import std.option { Option, Some, None };
+
+# Each Node owns a heap allocation and, when present, the next node.
+type Node = ref {
+    value: s32,
+    next: Option<Node>,
+}
+
+# Borrow the next node without transferring ownership of it.
+fn next(let node: &Node): Option<&Node> from node {
+    match &node.next {
+        Some(let child) => { return Some(child); }
+        None => { return None; }
+    }
+}
+
+fn main(): s32 {
+    let tail = new Node {
+        value: 20,
+        next: None,
+    };
+
+    let head = new Node {
+        value: 10,
+        next: Some(take(tail)),
+    };
+    # tail is consumed. head now owns the chain: 10 -> 20 -> None.
+
+    match next(&head) {
+        Some(let child) => { return head.value + child.value; }
+        None => { return head.value; }
+    }
+    # Each return releases head and the node owned by its next field.
+}

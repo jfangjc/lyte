@@ -1,0 +1,27 @@
+module app.ownership;
+
+# Point values own heap allocations. Checked references only borrow access.
+type Point = ref {
+    x: s32,
+    y: s32,
+}
+
+fn identity(let point: &Point): &Point from point {
+    return point;
+}
+
+# Either input can supply the result. Both loans remain active while it is used.
+fn choose(let left: &Point, let right: &Point, let first: bool): &Point from (left, right) {
+    if first {
+        return left;
+    }
+    return right;
+}
+
+fn main(): s32 {
+    let left = new Point { x: 10, y: 20 };
+    let right = new Point { x: 30, y: 40 };
+    let selected = choose(&left, &right, true);
+    let same = identity(selected);
+    return same.x;
+}

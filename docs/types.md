@@ -40,7 +40,7 @@ let point = Point { x: 1.0, y: 2.0 };
 ```
 
 Ordinary records live inline in local, field, or element storage.
-[Heap records](memory.md#heap-storage) hold owning handles instead.
+[Records declared with `ref`](memory.md#heap-storage) hold owning handles instead.
 
 ### Sums
 

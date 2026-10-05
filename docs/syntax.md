@@ -29,7 +29,7 @@ fn main(): s32 {
 
 ```text
 module export import as transparent
-type fn heap new
+type fn ref new
 let var mut take from
 if else for match return break continue
 unsafe

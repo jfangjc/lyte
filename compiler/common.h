@@ -13,7 +13,7 @@ enum TOKENS {
     TOK_TRANSPARENT,
     TOK_TYPE,
     TOK_FN,
-    TOK_HEAP,
+    TOK_REF,
     TOK_NEW,
     TOK_LET,
     TOK_VAR,

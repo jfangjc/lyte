@@ -46,7 +46,7 @@ have compiler-checked rules.
 | `second = writer`                                   | [Reborrowing](memory.md#reborrowing)                                   |
 | `from`, lifetime relationships                      | [Returned references](memory.md#returned-references)                   |
 | `take`, `Copy`                                      | [Ownership](memory.md#ownership-and-copying)                           |
-| `heap`, `new`                                       | [Heap storage](memory.md#heap-storage)                                 |
+| `ref`, `new`                                        | [Heap storage](memory.md#heap-storage)                                 |
 | `extract`, `exchange`, `drop`                       | [Memory operations](standard-library.md#memory-operations)             |
 | `Option`, `Some`, `None`                            | [Option](standard-library.md#option)                                   |
 | `Result`, `Ok`, `Err`                               | [Result](standard-library.md#result)                                   |

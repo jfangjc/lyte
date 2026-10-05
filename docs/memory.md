@@ -31,7 +31,7 @@ library call that documents allocation and failure.
 ## Heap storage
 
 ```lyte
-type Node<T> = heap {
+type Node<T> = ref {
     value: T,
     next: Option<Node<T>>,
 }
@@ -42,9 +42,13 @@ var node = new Node {
 };
 ```
 
-`Node<T>` owns a heap allocation; moving the handle leaves the allocation in
-place. `new` allocates and infers generic arguments from fields when unambiguous.
+`ref` declares a record represented by an owning pointer to its fields in heap
+storage. `Node<T>` owns that allocation; moving the handle leaves the allocation
+in place. `new` allocates and infers generic arguments from fields when unambiguous.
 Allocation failure aborts without recovery or rollback.
+
+`ref` does not introduce shared ownership or reference counting. `Node<T>` is
+an owner; `&Node<T>` and `&mut Node<T>` only borrow access to its data.
 
 Safe owners cannot form cycles. Graphs may use arenas with non-owning IDs or
 raw pointers behind checked APIs. Returning safe references requires checking
@@ -126,7 +130,9 @@ active until the result's loan ends.
 
 ## Returned references
 
-Only shared references may be returned. `from` names their source:
+Only shared references may be returned. A `from` clause follows the result type
+in the function signature and names the borrowed parameters that may supply
+the result:
 
 ```lyte
 fn identity(let point: &Point): &Point from point {
@@ -137,6 +143,20 @@ fn identity(let point: &Point): &Point from point {
 The compiler checks the body against the exported contract used by callers.
 Exactly one eligible borrowed input allows inferred `from`; several require
 an explicit clause.
+
+A reference result type declares a borrowed return; `from` specifies its source
+relationship. It does not allocate, transfer ownership, or preserve a parameter
+binding after the call. The caller must keep the underlying data alive and obey
+the input's borrow restrictions while the result's loan is active.
+
+```lyte
+fn choose(let left: &Point, let right: &Point, let first: bool): &Point from (left, right) {
+    if first {
+        return left;
+    }
+    return right;
+}
+```
 
 `from (left, right)` allows either source and keeps both loans active for the
 result's lifetime. The result cannot outlive either. Locals and consuming
@@ -155,8 +175,8 @@ and binding every field:
 var { value, next } = take(node);
 ```
 
-For heap records, this transfers fields and frees the allocation. Unwanted
-owned fields still need cleanup.
+For records declared with `ref`, this transfers fields and frees the allocation.
+Unwanted owned fields still need cleanup.
 
 `extract` leaves `None`. `exchange` installs a replacement and returns the old
 value. Both require exclusive access.

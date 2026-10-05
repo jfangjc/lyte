@@ -49,7 +49,7 @@ void test_scanner_keywords(void) {
         {TOK_TRANSPARENT, "transparent", 1},
         {TOK_TYPE, "type", 2},
         {TOK_FN, "fn", 2},
-        {TOK_HEAP, "heap", 2},
+        {TOK_REF, "ref", 2},
         {TOK_NEW, "new", 2},
         {TOK_LET, "let", 3},
         {TOK_VAR, "var", 3},
@@ -68,7 +68,7 @@ void test_scanner_keywords(void) {
         {TOK_FALSE, "false", 6},
     };
     ASSERT_TOKENS("module export import as transparent\n"
-                  "type fn heap new\n"
+                  "type fn ref new\n"
                   "let var mut take from\n"
                   "if else for match return break continue\n"
                   "unsafe\ntrue false",
@@ -83,9 +83,10 @@ void test_scanner_identifiers(void) {
         {TOK_ID, "_", 1},      {TOK_ID, "std", 1},
         {TOK_ID, "ma", 1},     {TOK_ID, "matc", 1}, {TOK_ID, "matcha", 1},
         {TOK_ID, "asa", 1},    {TOK_ID, "vara", 1}, {TOK_ID, "aa", 1}, {TOK_ID, "zz", 1},
+        {TOK_ID, "heap", 1}, {TOK_ID, "ref_value", 1}, {TOK_ID, "from_value", 1},
     };
     ASSERT_TOKENS("const safe out Copy Match match_value match2 _match transparent_value _ std "
-                  "ma matc matcha asa vara aa zz", expected);
+                  "ma matc matcha asa vara aa zz heap ref_value from_value", expected);
 }
 
 void test_scanner_operators(void) {
